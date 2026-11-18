@@ -670,7 +670,12 @@ public class CustomTexts
                 }
             }
 
-            if (props.HelpfulHints != HelpfulHintOption.NONE || props.MarioMode)
+            if (props.ArchipelagoMode && props.HelpfulHints != HelpfulHintOption.NONE)
+            {
+                List<int> placedIndexes = GenerateArchipelagoHintSlots(texts, hashRNG, props);
+                GenerateKnowNothings(texts, placedIndexes, nonhashRNG, props.HelpfulHints, props.BagusWoods, props.UseCommunityText, props.MarioMode);
+            }
+            else if (props.HelpfulHints != HelpfulHintOption.NONE || props.MarioMode)
             {
                 List<int> placedIndexes = GenerateHelpfulHints(texts, locations, hashRNG, props);
                 GenerateKnowNothings(texts, placedIndexes, nonhashRNG, props.HelpfulHints, props.BagusWoods, props.UseCommunityText, props.MarioMode);
@@ -768,6 +773,71 @@ public class CustomTexts
                 texts[index] = GenerateTownSignHint((Collectable)location.Town.GetWizard()!.Collectable!, linkedFire);
             }
         }
+    }
+
+    /// <summary>
+    /// Bytes reserved for an Archipelago helpful hint: the longest place ("carock$disappears$with the$", 27 characters)
+    /// plus an item name of two 10 character lines (21), the end byte, and one byte holding 0x80 + the hint number.
+    /// </summary>
+    public const int ARCHIPELAGO_HINT_SIZE = 52;
+
+    /// <summary>
+    /// In Archipelago mode the items aren't known when the ROM is made, so helpful hints are placeholders the
+    /// Archipelago client fills in. This picks the NPCs that give hints, the same way GenerateHelpfulHints does (one in
+    /// each of five towns, always one in Old Kasuto), and records them in props.ArchipelagoHintSlots.
+    /// </summary>
+    private static List<int> GenerateArchipelagoHintSlots(List<Text> hints, Random r, RandomizerProperties props)
+    {
+        List<int> placedIndex = [];
+        props.ArchipelagoHintSlots = [];
+        // the usual hint count plus the one a seed with spells in the shuffle gets for a critical spell
+        int hintsCount = HELPFUL_HINTS_COUNT + 1;
+        const int oldKasuto = 7;
+        List<int> towns = Enumerable.Range(0, hintIndexes.Length).Where(t => t != oldKasuto).ToList();
+        towns.FisherYatesShuffle(r);
+        towns = [oldKasuto, .. towns.Take(hintsCount - 1)];
+
+        for (int slot = 0; slot < towns.Count; slot++)
+        {
+            int index = hintIndexes[towns[slot]][r.Next(hintIndexes[towns[slot]].Length)];
+            int[] indexes = index switch
+            {
+                errorTextIndex1 => [errorTextIndex1, errorTextIndex2],
+                talkingBotIndexTalking => [talkingBotIndexSleeping, talkingBotIndexTalking],
+                talkingAcheIndexTalking => [talkingAcheIndexSleeping, talkingAcheIndexTalking],
+                _ => [index],
+            };
+            Text placeholder = ArchipelagoHintPlaceholder(slot);
+            foreach (int i in indexes)
+            {
+                hints[i] = placeholder;
+                placedIndex.Add(i);
+            }
+            props.ArchipelagoHintSlots.Add(indexes);
+        }
+        return placedIndex;
+    }
+
+    /// <summary>
+    /// A helpful hint reading "AP HINT", padded with end bytes to ARCHIPELAGO_HINT_SIZE. The last byte is 0x80 + the
+    /// hint number, which keeps each hint unique when the ROM is assembled. The Archipelago client
+    /// (worlds/z2r/Client.py) relies on this layout.
+    /// </summary>
+    public static Text ArchipelagoHintPlaceholder(int slot)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_HINT_SIZE).ToArray();
+        Util.ToGameText("AP HINT", true).CopyTo(bytes, 0);
+        bytes[^1] = (byte)(0x80 + slot);
+        return new Text(bytes);
+    }
+
+    /// <summary>
+    /// The start of a helpful hint about an item at this location, such as "go west to$find the$", which the
+    /// Archipelago client finishes with the item's name.
+    /// </summary>
+    public static string ArchipelagoHintPlace(Location location, RandomizerProperties props)
+    {
+        return Text.HelpfulHintPlace(location, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
     }
 
     /// <summary>

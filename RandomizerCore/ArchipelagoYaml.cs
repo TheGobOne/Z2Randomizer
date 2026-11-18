@@ -130,6 +130,25 @@ public static partial class ApYamlBuilder
             : [];
         sb.Append("  priority_locations: [").Append(string.Join(", ", priorityIds.Select(Key))).Append("]\n");
 
+        // Helpful hints: the text indexes of each hint NPC (filled in by the client), and the start of a hint about each
+        // location. Empty when helpful hints are off.
+        sb.Append("  hint_slots: [")
+            .Append(string.Join(", ", props.ArchipelagoHintSlots.Select(s => "[" + string.Join(", ", s) + "]"))).Append("]\n");
+        var hintPlaces = props.ArchipelagoHintSlots.Count == 0 ? []
+            : manifest.Locations.Where(l => l.HintPlace != null).OrderBy(l => l.NodeId, StringComparer.Ordinal).ToList();
+        if (hintPlaces.Count == 0)
+        {
+            sb.Append("  hint_places: {}\n");
+        }
+        else
+        {
+            sb.Append("  hint_places:\n");
+            foreach (var location in hintPlaces)
+            {
+                sb.Append("    ").Append(Key(location.NodeId)).Append(": ").Append(Quoted(location.HintPlace!)).Append('\n');
+            }
+        }
+
         sb.Append("  locations:\n");
         foreach (var location in manifest.Locations.OrderBy(l => l.NodeId, StringComparer.Ordinal))
         {

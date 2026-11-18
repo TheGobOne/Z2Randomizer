@@ -28,6 +28,18 @@ public class ArchipelagoSignTests
     }
 
     [TestMethod]
+    public void HintPlaceholder_HasRoomForTheLongestHint_AndEndsWithItsNumber()
+    {
+        byte[] bytes = CustomTexts.ArchipelagoHintPlaceholder(3).EncodedText;
+
+        bytes.Should().HaveCount(CustomTexts.ARCHIPELAGO_HINT_SIZE);
+        bytes[^1].Should().Be(0x83);
+        // the longest place plus an item name of two full lines, and its end byte, must fit before the number byte
+        Util.ToGameText("carock$disappears$with the$MAGICMAGIC$CONTAINERS", true).Length
+            .Should().BeLessThanOrEqualTo(bytes.Length - 1);
+    }
+
+    [TestMethod]
     public void Placeholder_EndsWithTheTownType_SoEachTownIsUnique()
     {
         var signs = new[] { TownType.RAURU, TownType.RUTO, TownType.SARIA, TownType.MIDO, TownType.NABOORU,

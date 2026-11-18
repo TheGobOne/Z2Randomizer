@@ -26,6 +26,8 @@ public enum ApFlagKind
 /// <param name="Mask">The bit(s) of that byte that change when the location is checked.</param>
 /// <param name="CollectedBitValue">Value (0 or 1) the bit has once the location has been checked.</param>
 /// <param name="FixedItem">The Archipelago item the location always holds, such as "Crystal 1". Null when the multiworld decides.</param>
+/// <param name="HintPlace">The start of a helpful hint about this location ("go west to$find the$"), which the client
+/// finishes with the item's name. Null for events.</param>
 public record ApLocation(
     string NodeId,
     string Name,
@@ -33,7 +35,8 @@ public record ApLocation(
     int Address,
     int Mask,
     int CollectedBitValue,
-    string? FixedItem = null);
+    string? FixedItem = null,
+    string? HintPlace = null);
 
 public record ApManifest(
     string? Seed,
@@ -116,17 +119,12 @@ public static class ApManifestBuilder
         List<ApLocation> locations = [];
         foreach (var location in itemLocations)
         {
-            if (location.Town != null)
+            int before = locations.Count;
+            AddLocation(locations, location, worlds, rom);
+            string place = CustomTexts.ArchipelagoHintPlace(location, props);
+            for (int i = before; i < locations.Count; i++)
             {
-                AddTown(locations, location, location.Town);
-            }
-            else if (location.Palace != null)
-            {
-                AddPalace(locations, location, location.Palace);
-            }
-            else if (location.GetAllCollectables().Any(c => c == Collectable.AP_ITEM))
-            {
-                AddOverworld(locations, location, worlds.First(w => w.AllLocations.Contains(location)), rom);
+                locations[i] = locations[i] with { HintPlace = place };
             }
         }
 
@@ -140,6 +138,22 @@ public static class ApManifestBuilder
         }
 
         return new ApManifest(props.Seed, props.Flags, props.ArchipelagoSlotName, DESCRIPTION, locations, warnings);
+    }
+
+    private static void AddLocation(List<ApLocation> locations, Location location, IReadOnlyList<World> worlds, ROM rom)
+    {
+        if (location.Town != null)
+        {
+            AddTown(locations, location, location.Town);
+        }
+        else if (location.Palace != null)
+        {
+            AddPalace(locations, location, location.Palace);
+        }
+        else if (location.GetAllCollectables().Any(c => c == Collectable.AP_ITEM))
+        {
+            AddOverworld(locations, location, worlds.First(w => w.AllLocations.Contains(location)), rom);
+        }
     }
 
     /// <summary>

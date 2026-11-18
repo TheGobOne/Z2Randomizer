@@ -56,7 +56,8 @@ public class ApManifestTests
         var manifest = ApManifestBuilder.Build([], [location], null!, Props());
 
         manifest.Locations.Should().ContainSingle().Which.Should().Be(new ApLocation(
-            "PALACE1:item1", "Palace 1 item room", ApFlagKind.ItemPresence, 0x0682, 0x02, 0));
+            "PALACE1:item1", "Palace 1 item room", ApFlagKind.ItemPresence, 0x0682, 0x02, 0,
+            HintPlace: "horsehead$neighs$with the$"));
     }
 
     [TestMethod]

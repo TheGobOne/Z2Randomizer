@@ -1497,11 +1497,10 @@ public sealed partial class RandomizerConfiguration() : INotifyPropertyChanged
                 throw new UserFacingException("Invalid Slot Name", slotNameError);
             }
             properties.ArchipelagoSlotName = archipelagoSlotName!.Trim();
-            // Every major item is the AP item, so there's nothing for hints to point at
+            // Every major item is the AP item, so spell item hints have nothing to point at
             properties.SpellItemHints = false;
-            properties.HelpfulHints = HelpfulHintOption.NONE;
-            // Town signs stay on: a sign for a wizard holding an AP item gets a placeholder that the Archipelago
-            // client fills in with the item's name (see CustomTexts.ArchipelagoSignPlaceholder)
+            // Helpful hints and town signs stay on: they get placeholders that the Archipelago client fills in once the
+            // multiworld is known (see CustomTexts.GenerateArchipelagoHintSlots and ArchipelagoSignPlaceholder)
         }
 
         //Misc.

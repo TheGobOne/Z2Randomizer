@@ -145,6 +145,12 @@ public class RandomizerProperties
     public bool PrioritizePalaceItems { get; set; }
     [NotMapped]
     public string ArchipelagoSlotName { get; set; } = "";
+    /// <summary>
+    /// The text indexes of each Archipelago helpful hint, set while the texts are generated. A hint can use more than one
+    /// index (an NPC with two messages). Written to the Archipelago YAML so the client can fill the hints in.
+    /// </summary>
+    [NotMapped, JsonIgnore]
+    public System.Collections.Generic.List<int[]> ArchipelagoHintSlots { get; set; } = [];
 
     //Enemies
     public EnemyLifeOption ShuffleEnemyHP { get; set; }
