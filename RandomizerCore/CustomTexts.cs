@@ -756,16 +756,39 @@ public class CustomTexts
         bool linkedFire = props.LinkedFireSpell != null;
         foreach (Location location in locations.Where(i => i.Town?.GetWizard() != null))
         {
-            // In Archipelago mode, a wizard in the pool holds the AP item, which a sign can't name
-            if (props.ArchipelagoMode && ArchipelagoItems.IsInPool(location.Town!.GetWizard()!, location.Town, props))
-            {
-                continue;
-            }
             if(location?.Town?.Type != null && TOWN_SIGN_INDEXES.TryGetValue((TownType)location?.Town?.Type!, out int index))
             {
+                // In Archipelago mode, a wizard in the pool holds an AP item, which isn't known until the multiworld
+                // is generated. The sign gets a placeholder that the Archipelago client rewrites in game.
+                if (props.ArchipelagoMode && ArchipelagoItems.IsInPool(location.Town!.GetWizard()!, location.Town, props))
+                {
+                    texts[index] = ArchipelagoSignPlaceholder((TownType)location.Town.Type!);
+                    continue;
+                }
                 texts[index] = GenerateTownSignHint((Collectable)location.Town.GetWizard()!.Collectable!, linkedFire);
             }
         }
+    }
+
+    /// <summary>
+    /// Bytes reserved for a town sign the Archipelago client rewrites: the longest sign it can write
+    /// ("MAGIC$CONTAINER$TOWN", 20 characters) plus its end byte, plus one byte holding the town type.
+    /// </summary>
+    public const int ARCHIPELAGO_SIGN_SIZE = 22;
+
+    /// <summary>
+    /// A town sign reading "AP ITEM TOWN", padded with end bytes to ARCHIPELAGO_SIGN_SIZE so the client has room to
+    /// write the item's name in place. The last byte is the town type, which keeps each town's sign unique (identical
+    /// texts are merged when the ROM is assembled, and each sign must have its own bytes) and lets the client check it
+    /// found the right sign. The Archipelago client (worlds/z2r/Client.py) relies on this layout.
+    /// </summary>
+    public static Text ArchipelagoSignPlaceholder(TownType town)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_SIGN_SIZE).ToArray();
+        byte[] text = Util.ToGameText("AP$ITEM$town", true);
+        text.CopyTo(bytes, 0);
+        bytes[^1] = (byte)town;
+        return new Text(bytes);
     }
     private static Text GenerateTownSignHint(Collectable spell, bool linkedFire)
     {
