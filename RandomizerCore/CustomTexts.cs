@@ -97,6 +97,7 @@ public class CustomTexts
 
     public const int WEST_TEXT_COUNT = 52;
     private const int MAX_TEXT_LENGTH = 3134;
+    private const int MAX_TEXT_ATTEMPTS = 1000;
     private const int numberOfTextEntries = 98;
 
     // On the off chance we do something that eats up space in PRG3, we can limit
@@ -613,6 +614,7 @@ public class CustomTexts
 
         // Make a new RNG for community text so that it doesn't affect the final hash.
         var nonhashRNG = new Random(hashRNG.Next());
+        int textAttempts = 0;
         do
         {
             if (props.ReplaceFireWithDash)
@@ -696,7 +698,13 @@ public class CustomTexts
             {
                 GenerateTownNameHints(texts, locations, props);
             }
-        } while (TextLength(texts) > MAX_TEXT_LENGTH);
+        } while (TextLength(texts) > MAX_TEXT_LENGTH && ++textAttempts < MAX_TEXT_ATTEMPTS);
+
+        if (TextLength(texts) > MAX_TEXT_LENGTH)
+        {
+            // Archipelago placeholders are a fixed size, so a seed that is already near the limit can never shrink under it
+            throw new ImpossibleException($"The dialog did not fit in {MAX_TEXT_LENGTH} bytes after {MAX_TEXT_ATTEMPTS} attempts");
+        }
 
         return texts;
     }

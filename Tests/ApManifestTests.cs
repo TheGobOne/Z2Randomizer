@@ -40,7 +40,7 @@ public class ApManifestTests
         act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
-    private static RandomizerProperties Props() => new() { Seed = "1", Flags = "f" };
+    private static RandomizerProperties Props() => new() { Seed = "1", Flags = "f", HelpfulHints = HelpfulHintOption.CONTINENT_ONLY };
 
     [TestMethod]
     public void Build_PalaceItemRoom_UsesRoomMapAndItemScreen()
@@ -58,6 +58,23 @@ public class ApManifestTests
         manifest.Locations.Should().ContainSingle().Which.Should().Be(new ApLocation(
             "PALACE1:item1", "Palace 1 item room", ApFlagKind.ItemPresence, 0x0682, 0x02, 0,
             HintPlace: "horsehead$neighs$with the$"));
+    }
+
+    [TestMethod]
+    public void Build_WithHelpfulHintsOff_HasNoHintPlaces()
+    {
+        byte[] sideview = [9, 0, 0, 0, 0xE2, 0x00, 0x50, 0x0F, (byte)Collectable.CANDLE];
+        var room = new Room { Name = "item", HasItem = true, Map = 5, SideView = sideview, Collectable = Collectable.AP_ITEM };
+        var palace = new Palace(1, true);
+        palace.AllRooms.Add(room);
+        palace.ItemRooms.Add(room);
+        var location = new Location(LocationID.WEST_PALACE1, 30, 5, 1, Continent.WEST) { Palace = palace };
+        var props = Props();
+        props.HelpfulHints = HelpfulHintOption.NONE;
+
+        var manifest = ApManifestBuilder.Build([], [location], null!, props);
+
+        manifest.Locations.Should().ContainSingle().Which.HintPlace.Should().BeNull();
     }
 
     [TestMethod]

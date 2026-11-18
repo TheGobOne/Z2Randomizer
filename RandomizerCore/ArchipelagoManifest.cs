@@ -121,6 +121,10 @@ public static class ApManifestBuilder
         {
             int before = locations.Count;
             AddLocation(locations, location, worlds, rom);
+            if (props.HelpfulHints == HelpfulHintOption.NONE)
+            {
+                continue; // no hints, so no hint places
+            }
             string place = CustomTexts.ArchipelagoHintPlace(location, props);
             for (int i = before; i < locations.Count; i++)
             {
