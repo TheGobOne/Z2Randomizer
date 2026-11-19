@@ -86,7 +86,7 @@ Seed: {config.Seed}
         SaveYamlToPlayers = ReactiveCommand.CreateFromTask(async () =>
             await WriteYamlTo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                                            "Archipelago", "Players"),
-                              "Archipelago's Players folder", createFolder: false));
+                              "Archipelago's Players folder", createFolder: false, moveOlderAside: true));
 
         this.WhenActivated(Randomize);
         return;
@@ -278,7 +278,7 @@ Seed: {config.Seed}
     [JsonIgnore]
     public bool CanWriteLocalFiles => !OperatingSystem.IsBrowser();
 
-    private async Task WriteYamlTo(string folder, string label, bool createFolder)
+    private async Task WriteYamlTo(string folder, string label, bool createFolder, bool moveOlderAside = false)
     {
         if (yamlText is null) return;
         try
@@ -291,6 +291,16 @@ Seed: {config.Seed}
                     return;
                 }
                 Directory.CreateDirectory(folder);
+            }
+            if (moveOlderAside)
+            {
+                // Archipelago makes a slot for every YAML in the folder, so an older Z2R YAML would be a second Z2R slot
+                var previous = Path.Combine(folder, "previous");
+                foreach (var old in Directory.GetFiles(folder, "*_ap.yaml").Where(f => Path.GetFileName(f) != yamlName))
+                {
+                    Directory.CreateDirectory(previous);
+                    File.Move(old, Path.Combine(previous, Path.GetFileName(old)), overwrite: true);
+                }
             }
             var path = Path.Combine(folder, yamlName);
             await File.WriteAllTextAsync(path, yamlText, new System.Text.UTF8Encoding(false));

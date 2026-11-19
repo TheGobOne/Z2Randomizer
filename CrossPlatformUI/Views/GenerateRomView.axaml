@@ -12,13 +12,19 @@
 		<TextBlock Grid.Row="1" Margin="16 0 16 16" TextAlignment="Left" HorizontalAlignment="Center" VerticalAlignment="Center" Text="{Binding ProgressBody}" TextWrapping="WrapWithOverflow" />
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Copy Error" IsVisible="{Binding HasError}" Command="{Binding CopyError}" />
-            <Button Content="Save YAML" IsVisible="{Binding HasYaml}" Command="{Binding SaveYaml}" />
+            <Button Content="Save YAML as..." IsVisible="{Binding HasYaml}" Command="{Binding SaveYaml}">
+                <ToolTip.Tip><TextBlock Text="Choose where to save the Archipelago YAML."/></ToolTip.Tip>
+            </Button>
             <StackPanel Orientation="Horizontal" IsVisible="{Binding CanWriteLocalFiles}">
-                <Button Content="YAML to Downloads" IsVisible="{Binding HasYaml}" Command="{Binding SaveYamlToDownloads}" />
-                <Button Content="YAML to Players" IsVisible="{Binding HasYaml}" Command="{Binding SaveYamlToPlayers}" />
+                <Button Content="Save to Downloads" IsVisible="{Binding HasYaml}" Command="{Binding SaveYamlToDownloads}">
+                    <ToolTip.Tip><TextBlock Text="Saves the YAML in your Downloads folder."/></ToolTip.Tip>
+                </Button>
+                <Button Content="Save to Players folder" IsVisible="{Binding HasYaml}" Command="{Binding SaveYamlToPlayers}">
+                    <ToolTip.Tip><TextBlock Text="Saves the YAML in Archipelago's Players folder (ProgramData\Archipelago\Players). Older Z2R YAMLs there move to a 'previous' folder so only one Z2R slot is generated."/></ToolTip.Tip>
+                </Button>
             </StackPanel>
-            <Button Name="CancelGen" IsCancel="True" Focusable="True" Content="Cancel" Classes="accent" IsVisible="{Binding !IsComplete}" Command="{Binding CancelGeneration}" />
-            <Button Name="CloseGen" IsDefault="True" Focusable="True" Content="Close" IsVisible="{Binding IsComplete}" Command="{Binding CancelGeneration}" />
+            <Button Name="CancelGen" Margin="16 0 0 0" IsCancel="True" Focusable="True" Content="Cancel" Classes="accent" IsVisible="{Binding !IsComplete}" Command="{Binding CancelGeneration}" />
+            <Button Name="CloseGen" Margin="16 0 0 0" IsDefault="True" Focusable="True" Content="Close" IsVisible="{Binding IsComplete}" Command="{Binding CancelGeneration}" />
         </StackPanel>
     </Grid>
 </UserControl>
