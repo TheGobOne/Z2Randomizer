@@ -80,6 +80,7 @@ public class ApYamlTests
               priority_locations: []
               hint_slots: []
               hint_places: {}
+              spell_hint_slots: {}
               locations:
                 WEST_CAVE_TROPHY: {address: 1552, mask: 8, collected: 0}
                 WEST_GRASS: {address: 1555, mask: 32, collected: 0}
@@ -219,6 +220,15 @@ public class ApYamlTests
             .And.Contain("  fixed_items:\n    PALACE1:crystal: Crystal 1\n")
             .And.Contain("    PALACE1:crystal: [[HAMMER]]\n")
             .And.NotContain("events");
+    }
+
+    [TestMethod]
+    public void Build_ListsTheSpellHintSlotsInItemOrder()
+    {
+        var props = Props();
+        props.ArchipelagoSpellHintSlots = new() { [Collectable.WATER] = 65, [Collectable.TROPHY] = 13, [Collectable.UPSTAB] = 78 };
+
+        Build(props, Manifest(), Routes()).Should().Contain("  spell_hint_slots: {Trophy: 13, Water: 65, Upstab: 78}\n");
     }
 
     [TestMethod]
