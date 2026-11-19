@@ -79,6 +79,15 @@ Seed: {config.Seed}
             }
         });
 
+        SaveYamlToDownloads = ReactiveCommand.CreateFromTask(async () =>
+            await WriteYamlTo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"),
+                              "Downloads", createFolder: true));
+        // Archipelago's default install folder on Windows; never created, since a missing one means another install
+        SaveYamlToPlayers = ReactiveCommand.CreateFromTask(async () =>
+            await WriteYamlTo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                                           "Archipelago", "Players"),
+                              "Archipelago's Players folder", createFolder: false));
+
         this.WhenActivated(Randomize);
         return;
 
@@ -260,6 +269,38 @@ Seed: {config.Seed}
 
     [JsonIgnore]
     public ReactiveCommand<RxVoid, RxVoid> SaveYaml { get; }
+
+    [JsonIgnore]
+    public ReactiveCommand<RxVoid, RxVoid> SaveYamlToDownloads { get; }
+    [JsonIgnore]
+    public ReactiveCommand<RxVoid, RxVoid> SaveYamlToPlayers { get; }
+    /// <summary>The one-click buttons write to the player's disk, which the browser build cannot do.</summary>
+    [JsonIgnore]
+    public bool CanWriteLocalFiles => !OperatingSystem.IsBrowser();
+
+    private async Task WriteYamlTo(string folder, string label, bool createFolder)
+    {
+        if (yamlText is null) return;
+        try
+        {
+            if (!Directory.Exists(folder))
+            {
+                if (!createFolder)
+                {
+                    ProgressBody = $"Could not find {label} at {folder}. Use Save YAML to pick the folder.";
+                    return;
+                }
+                Directory.CreateDirectory(folder);
+            }
+            var path = Path.Combine(folder, yamlName);
+            await File.WriteAllTextAsync(path, yamlText, new System.Text.UTF8Encoding(false));
+            ProgressBody = $"Hash: {lastHash}\n\nYAML saved to {label}:\n{path}";
+        }
+        catch (Exception e)
+        {
+            ProgressBody = $"Unable to save the YAML to {label}: {e.Message}";
+        }
+    }
 
     private string? yamlText;
     private string yamlName = "archipelago.yaml";
