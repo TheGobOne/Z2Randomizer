@@ -6,6 +6,7 @@
 - Added a "Generate Requirements Graph" option (Hints tab) that writes a `_requirements.json` file listing the minimal routes and requirements to reach every item location and palace boss from the North Palace.
 - Added a "Prioritize palace items" option (Archipelago tab) that adds the palace item locations to the priority locations of the Archipelago YAML.
 - Added a "Save YAML" button to the generation dialog in Archipelago Mode. It lets you pick where to save the Archipelago YAML, for example straight into Archipelago's Players folder. The YAML is still saved next to the ROM as before.
+- Added "YAML to Downloads" and "YAML to Players" buttons next to it (desktop only). They save the YAML in one click to your Downloads folder or to Archipelago's default Players folder (`C:\ProgramData\Archipelago\Players` on Windows).
 
 ## Version 5.2.5 - October 24, 2026
 
