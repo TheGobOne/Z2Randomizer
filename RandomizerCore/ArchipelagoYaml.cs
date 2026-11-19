@@ -149,6 +149,11 @@ public static partial class ApYamlBuilder
             }
         }
 
+        // Spell Item Hints: the text index of the hint for each spell item Archipelago places (filled in by the client)
+        var spellHints = props.ArchipelagoSpellHintSlots.OrderBy(s => Array.IndexOf(CustomTexts.ARCHIPELAGO_SPELL_HINT_ITEMS, s.Key));
+        sb.Append("  spell_hint_slots: {")
+            .Append(string.Join(", ", spellHints.Select(s => $"{Scalar(ItemName(s.Key))}: {s.Value}"))).Append("}\n");
+
         sb.Append("  locations:\n");
         foreach (var location in manifest.Locations.OrderBy(l => l.NodeId, StringComparer.Ordinal))
         {
