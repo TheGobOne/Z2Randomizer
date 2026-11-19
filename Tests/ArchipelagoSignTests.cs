@@ -51,6 +51,17 @@ public class ArchipelagoSignTests
     }
 
     [TestMethod]
+    public void ItemTextPlaceholder_HasRoomForFourFullLines_AndEndsWithItsNumber()
+    {
+        byte[] bytes = CustomTexts.ArchipelagoItemTextPlaceholder(5).EncodedText;
+
+        bytes.Should().HaveCount(CustomTexts.ARCHIPELAGO_ITEM_TEXT_SIZE);
+        bytes[^1].Should().Be(0xC5);
+        Util.ToGameText("ABCDEFGHIJK$ABCDEFGHIJK$ABCDEFGHIJK$ABCDEFGHIJK", true).Length
+            .Should().BeLessThanOrEqualTo(bytes.Length - 1);
+    }
+
+    [TestMethod]
     public void SpellHintPlaceholders_AreUniqueAndDifferFromHelpfulHints()
     {
         var all = CustomTexts.ARCHIPELAGO_SPELL_HINT_ITEMS.Select(i => CustomTexts.ArchipelagoSpellHintPlaceholder(i).EncodedText[^1])

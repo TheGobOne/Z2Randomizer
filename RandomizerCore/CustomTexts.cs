@@ -622,8 +622,9 @@ public class CustomTexts
                 texts[70] = new Text("USE THIS$TO GO$FAST");
             }
 
-            GenerateTownsfolkTexts(texts, locations, nonhashRNG, props.UseCommunityText, props.IncludeQuestItemsInShuffle);
+            GenerateTownsfolkTexts(texts, locations, nonhashRNG, props.UseCommunityText, props.IncludeQuestItemsInShuffle, props);
             props.ArchipelagoSpellHintSlots = [];
+            props.ArchipelagoItemTextSlots = [];
 
             if (props.SpellItemHints)
             {
@@ -879,6 +880,22 @@ public class CustomTexts
         byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_SPELL_HINT_SIZE).ToArray();
         Util.ToGameText("AP HINT", true).CopyTo(bytes, 0);
         bytes[^1] = (byte)(0xA0 + Array.IndexOf(ARCHIPELAGO_SPELL_HINT_ITEMS, item));
+        return new Text(bytes);
+    }
+
+    /// <summary>
+    /// Bytes reserved for the item-get dialog of a town location the Archipelago client fills in: four 11 character
+    /// lines, three line breaks, the end byte, and one byte holding 0xC0 + the dialog's number (the client relies on
+    /// this layout).
+    /// </summary>
+    public const int ARCHIPELAGO_ITEM_TEXT_SIZE = 49;
+
+    /// <summary>"AP ITEM" padded with end bytes to ARCHIPELAGO_ITEM_TEXT_SIZE, with 0xC0 + the dialog's number last.</summary>
+    public static Text ArchipelagoItemTextPlaceholder(int number)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_ITEM_TEXT_SIZE).ToArray();
+        Util.ToGameText("AP ITEM", true).CopyTo(bytes, 0);
+        bytes[^1] = (byte)(0xC0 + number);
         return new Text(bytes);
     }
 
@@ -1310,7 +1327,7 @@ public class CustomTexts
     }
 
     private static void GenerateTownsfolkTexts(List<Text> texts, IEnumerable<Location> itemLocs, Random r, 
-        bool useCommunityText, bool includeQuestItemsInShuffle)
+        bool useCommunityText, bool includeQuestItemsInShuffle, RandomizerProperties? props = null)
     {
         List<Text> vanillaTexts = new(texts);
         List<Text> usedTexts = [];
@@ -1319,8 +1336,9 @@ public class CustomTexts
         IEnumerable<TownMap> townsfolkCollectableMaps = itemLocs.Where(i => i.Town != null)
             .SelectMany(i => i.Town!.TownMaps.Where(m => m.CollectableTextType != null));
 
-        foreach (Town town in townsfolkCollectableTowns)
+        foreach (Location townLocation in itemLocs.Where(i => i.Town != null))
         {
+            Town town = townLocation.Town!;
             TownType type = town.Type ?? throw new Exception("Town missing type while generating hints");
             foreach(TownMap map in town.TownMaps.Where(m => m.CollectableTextType != null))
             {
@@ -1338,7 +1356,15 @@ public class CustomTexts
                 usedTexts.Add(text);
                 //TODO (eventually): This will for sure break as soon as we start doing custom towns
                 //Figure out a better way to index this, or just make some kind of global check id.
-                texts[townsfolkTextIndexes[map.Map]] = text;
+                int textIndex = townsfolkTextIndexes[map.Map];
+                if (props != null && props.ArchipelagoMode && map.Collectable == Collectable.AP_ITEM)
+                {
+                    // the item isn't known until the multiworld is, so the client fills this dialog in
+                    string nodeId = GraphNodeIds.TownMap(townLocation, map);
+                    text = ArchipelagoItemTextPlaceholder(props.ArchipelagoItemTextSlots.Count);
+                    props.ArchipelagoItemTextSlots[nodeId] = textIndex;
+                }
+                texts[textIndex] = text;
             }
         }
     }
