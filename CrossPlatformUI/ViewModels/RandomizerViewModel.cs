@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using ReactiveUI;
 using ReactiveUI.Primitives;
 using ReactiveUI.Primitives.Disposables;
 using RxVoid = ReactiveUI.Primitives.RxVoid;
 using Z2Randomizer.RandomizerCore;
+using Z2Randomizer.RandomizerCore.Sidescroll.Palace;
 using CrossPlatformUI.Presets;
 using CrossPlatformUI.Services;
 using CrossPlatformUI.ViewModels.Tabs;
@@ -155,6 +160,11 @@ public class RandomizerViewModel : ReactiveObject, IRoutableViewModel, IActivata
         {
             Main.GenerateRomDialogOpen = true;
         }, CanGenerateObservable);
+
+        // The Z2R YAML holds the seed's location flags and rules, so exporting it builds the seed (no ROM is saved)
+        ExportYaml = ReactiveCommand.CreateFromTask(ExportYamlAsync,
+            CanGenerateObservable.CombineLatest(this.WhenAnyValue(x => x.IsExportingYaml),
+                (canGenerate, exporting) => canGenerate && !exporting));
 
         VisitDiscord = ReactiveCommand.CreateFromTask<Control>(async control =>
         {
@@ -335,6 +345,69 @@ public class RandomizerViewModel : ReactiveObject, IRoutableViewModel, IActivata
     public ReactiveCommand<RxVoid, RxVoid> RerollSeed { get; }
     [JsonIgnore]
     public ReactiveCommand<RxVoid, RxVoid> Generate { get; }
+
+    [JsonIgnore]
+    public ReactiveCommand<RxVoid, RxVoid> ExportYaml { get; }
+
+    private bool isExportingYaml;
+    [JsonIgnore]
+    public bool IsExportingYaml { get => isExportingYaml; set => this.RaiseAndSetIfChanged(ref isExportingYaml, value); }
+
+    private string yamlExportStatus = "";
+    [JsonIgnore]
+    public string YamlExportStatus { get => yamlExportStatus; set => this.RaiseAndSetIfChanged(ref yamlExportStatus, value); }
+
+    /// <summary>Builds the seed in memory, without saving the ROM or any other file, and saves its Archipelago YAML
+    /// wherever the player picks.</summary>
+    private async Task ExportYamlAsync()
+    {
+        IsExportingYaml = true;
+        YamlExportStatus = "Building the seed for the YAML...";
+        try
+        {
+            var createAsm = App.Current?.Services?.GetService<Hyrule.NewAssemblerFn>();
+            var files = App.Current?.Services?.GetService<IFileSystemService>();
+            var dialog = App.Current?.Services?.GetService<IFileDialogService>();
+            var config = Main.Config;
+            var roomsJson = await files!.OpenFile(IFileSystemService.RandomizerPath.Palaces, "PalaceRooms.json");
+            var customJson = config.UseCustomRooms ? await files.OpenFile(IFileSystemService.RandomizerPath.Palaces, "CustomRooms.json") : null;
+            var palaceRooms = new PalaceRooms(config.UseCustomRooms ? customJson! : roomsJson!, config.UseCustomRooms);
+            var randomizer = new Hyrule(createAsm!, palaceRooms);
+            var romdata = Main.RomFileViewModel.RomData!.ToArray();
+            var output = await Task.Run(async () =>
+                await randomizer.Randomize(romdata, config, _ => Task.CompletedTask, CancellationToken.None));
+            if (!output.success)
+            {
+                throw new Exception(output.messages);
+            }
+            var version = Assembly.GetEntryAssembly()!.GetName().Version!;
+            var filename = OutputFilenameFormatter.Format(config.OutputFilenameTemplate, config.SerializeFlags(), config.Seed,
+                randomizer.Hash, version: $"{version.Major}.{version.Minor}.{version.Build}", marioMode: config.MarioMode);
+            var basename = Path.GetFileNameWithoutExtension(filename);
+            if (string.IsNullOrEmpty(basename)) basename = filename;
+
+            var yamlType = new FilePickerFileType("Archipelago YAML") { Patterns = ["*.yaml", "*.yml"] };
+            var target = await dialog!.SaveFileAsync("Save Archipelago YAML", basename + "_ap.yaml", yamlType);
+            if (target is null)
+            {
+                YamlExportStatus = "";
+                return;   // cancelled
+            }
+            await using var stream = await target.OpenWriteAsync();
+            stream.SetLength(0);
+            await using var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false));
+            await writer.WriteAsync(randomizer.GenerateArchipelagoYaml());
+            YamlExportStatus = $"YAML saved to {target.Name} (hash {randomizer.Hash})";
+        }
+        catch (Exception e)
+        {
+            YamlExportStatus = $"Could not export the YAML: {e.Message}";
+        }
+        finally
+        {
+            IsExportingYaml = false;
+        }
+    }
     [JsonIgnore]
     public ReactiveCommand<RxVoid, RxVoid> SaveFolder { get; }
     [JsonIgnore]
