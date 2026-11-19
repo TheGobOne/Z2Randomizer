@@ -28,11 +28,16 @@ public class FileDialogService(TopLevel? target) : IFileDialogService
         return files.Count >= 1 ? files[0] : null;
     }
 
-    public async Task<IStorageFile?> SaveFileAsync()
+    public async Task<IStorageFile?> SaveFileAsync(string title = "Save File", string? suggestedName = null,
+                                                   FilePickerFileType? fileType = null)
     {
         return await target!.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions()
         {
-            Title = "Save File"
+            Title = title,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = fileType is null ? null : "yaml",
+            FileTypeChoices = fileType is null ? null : [fileType],
+            ShowOverwritePrompt = true
         });
     }
 }

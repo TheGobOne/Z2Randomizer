@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using ReactiveUI;
 using ReactiveUI.Primitives.Disposables;
@@ -57,6 +58,27 @@ Seed: {config.Seed}
             ProgressBody = "Error message copied to clipboard";
         });
 
+        SaveYaml = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (yamlText is null) return;
+            var dialog = App.Current?.Services?.GetService<IFileDialogService>()!;
+            var yamlType = new FilePickerFileType("Archipelago YAML") { Patterns = ["*.yaml", "*.yml"] };
+            var target = await dialog.SaveFileAsync("Save Archipelago YAML", yamlName, yamlType);
+            if (target is null) return;   // cancelled
+            try
+            {
+                await using var stream = await target.OpenWriteAsync();
+                stream.SetLength(0);
+                await using var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false));
+                await writer.WriteAsync(yamlText);
+                ProgressBody = $"Hash: {lastHash}\n\nYAML saved to {target.Name}";
+            }
+            catch (Exception e)
+            {
+                ProgressBody = $"Unable to save the YAML: {e.Message}";
+            }
+        });
+
         this.WhenActivated(Randomize);
         return;
 
@@ -70,6 +92,8 @@ Seed: {config.Seed}
             lastError = null;
             HasError = false;
             IsComplete = false;
+            yamlText = null;
+            HasYaml = false;
             tokenSource = new CancellationTokenSource();
             ProgressHeading = "";
             ProgressBody = "";
@@ -156,7 +180,13 @@ Seed: {config.Seed}
                         if (config.ArchipelagoMode)
                         {
                             var yamlFilename = basename + "_ap.yaml";
-                            await files.SaveSpoilerFile(yamlFilename, randomizer.GenerateArchipelagoYaml(), Main.OutputFilePath);
+                            var yaml = randomizer.GenerateArchipelagoYaml();
+                            await files.SaveSpoilerFile(yamlFilename, yaml, Main.OutputFilePath);
+                            // kept for the Save YAML button, which lets the player pick another place for it
+                            yamlText = yaml;
+                            yamlName = yamlFilename;
+                            lastHash = randomizer.Hash;
+                            HasYaml = true;
                         }
                         ProgressHeading = "Generation Complete";
                         ProgressBody = $"Hash: {randomizer.Hash}\n\nFile: {filename}";
@@ -227,6 +257,16 @@ Seed: {config.Seed}
     public ReactiveCommand<RxVoid, RxVoid> CancelGeneration { get; }
     [JsonIgnore]
     public ReactiveCommand<RxVoid, RxVoid> CopyError { get; }
+
+    [JsonIgnore]
+    public ReactiveCommand<RxVoid, RxVoid> SaveYaml { get; }
+
+    private string? yamlText;
+    private string yamlName = "archipelago.yaml";
+    private string? lastHash;
+    private bool hasYaml;
+    [JsonIgnore]
+    public bool HasYaml { get => hasYaml; set => this.RaiseAndSetIfChanged(ref hasYaml, value); }
 
     private readonly SemaphoreSlim runningMutex = new SemaphoreSlim(1, 1);
     private bool isRunning;
