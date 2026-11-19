@@ -154,10 +154,10 @@ public static partial class ApYamlBuilder
         sb.Append("  spell_hint_slots: {")
             .Append(string.Join(", ", spellHints.Select(s => $"{Scalar(ItemName(s.Key))}: {s.Value}"))).Append("}\n");
 
-        // The item-get dialog of each town location, by node id (filled in by the client)
+        // The item-get dialog of each town location, by node id: [text index, placeholder number] (filled in by the client)
         sb.Append("  item_text_slots: {")
             .Append(string.Join(", ", props.ArchipelagoItemTextSlots.OrderBy(s => s.Key, StringComparer.Ordinal)
-                .Select(s => $"{Key(s.Key)}: {s.Value}"))).Append("}\n");
+                .Select(s => $"{Key(s.Key)}: [{s.Value.Index}, {s.Value.Number}]"))).Append("}\n");
 
         sb.Append("  locations:\n");
         foreach (var location in manifest.Locations.OrderBy(l => l.NodeId, StringComparer.Ordinal))

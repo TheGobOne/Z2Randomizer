@@ -622,9 +622,9 @@ public class CustomTexts
                 texts[70] = new Text("USE THIS$TO GO$FAST");
             }
 
+            props.ArchipelagoItemTextSlots = [];
             GenerateTownsfolkTexts(texts, locations, nonhashRNG, props.UseCommunityText, props.IncludeQuestItemsInShuffle, props);
             props.ArchipelagoSpellHintSlots = [];
-            props.ArchipelagoItemTextSlots = [];
 
             if (props.SpellItemHints)
             {
@@ -1361,8 +1361,9 @@ public class CustomTexts
                 {
                     // the item isn't known until the multiworld is, so the client fills this dialog in
                     string nodeId = GraphNodeIds.TownMap(townLocation, map);
-                    text = ArchipelagoItemTextPlaceholder(props.ArchipelagoItemTextSlots.Count);
-                    props.ArchipelagoItemTextSlots[nodeId] = textIndex;
+                    int number = props.ArchipelagoItemTextSlots.Count;
+                    text = ArchipelagoItemTextPlaceholder(number);
+                    props.ArchipelagoItemTextSlots[nodeId] = (textIndex, number);
                 }
                 texts[textIndex] = text;
             }

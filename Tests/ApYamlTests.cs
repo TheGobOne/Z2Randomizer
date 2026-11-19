@@ -227,10 +227,10 @@ public class ApYamlTests
     public void Build_ListsTheItemTextSlotsByNodeId()
     {
         var props = Props();
-        props.ArchipelagoItemTextSlots = new() { ["WEST_TOWN_SARIA_NORTH:table"] = 21, ["WEST_TOWN_RAURU:wizard"] = 15 };
+        props.ArchipelagoItemTextSlots = new() { ["WEST_TOWN_SARIA_NORTH:table"] = (21, 1), ["WEST_TOWN_RAURU:wizard"] = (15, 0) };
 
         Build(props, Manifest(), Routes()).Should().Contain(
-            "  item_text_slots: {WEST_TOWN_RAURU:wizard: 15, WEST_TOWN_SARIA_NORTH:table: 21}\n");
+            "  item_text_slots: {WEST_TOWN_RAURU:wizard: [15, 0], WEST_TOWN_SARIA_NORTH:table: [21, 1]}\n");
     }
 
     [TestMethod]
