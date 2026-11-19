@@ -197,7 +197,10 @@ public class Hyrule
             World.ResetStats();
             Z2MarioModeEnabled = config.MarioMode;
 
-            SeedHash = BitConverter.ToInt32(MD5Hash.ComputeHash(Encoding.UTF8.GetBytes(config.Seed!)).AsSpan()[..4]);
+            string seedString = config.Seed!
+                + (Assembly.GetEntryAssembly()?.GetName()?.Version)
+                ?? throw new Exception("Invalid entry assembly version information");
+            SeedHash = BitConverter.ToInt32(MD5Hash.ComputeHash(Encoding.UTF8.GetBytes(seedString)).AsSpan()[..4]);
             r = new Random(SeedHash);
             bool shareSeedAcrossDifficulty = config.ShareSeedAcrossDifficulty;
             Random? difficultyRng = shareSeedAcrossDifficulty ? CreateDifficultyRng(config.Seed) : null;
@@ -2351,6 +2354,13 @@ public class Hyrule
             rom.Put(ROM.ChrRomOffset + 0x0ea0, starSpriteTilePalette1);
             rom.Put(ROM.ChrRomOffset + 0x0ec0, starSpriteTilePalette2);
         }
+        else
+        {
+            if (props.FluteWarpMode != FluteWarpMode.NONE)
+            {
+                rom.Put(ROM.ChrRomOffset + 0x11b40, Util.ReadBinaryResource("Z2Randomizer.RandomizerCore.Asm.Graphics.whirlwind.chr"));
+            }
+        }
 
         if (props.ShuffleLifeRefill)
         {
@@ -4000,7 +4010,7 @@ FlagHudUpdate:
 
         if (props.FluteWarpMode != FluteWarpMode.NONE)
         {
-            ROM.FluteTwisterWarp(engine, props.FluteWarpMode, GetPalaceOrder());
+            ROM.FluteTwisterWarp(engine, props.FluteWarpMode, GetPalaceOrder(), props.MarioMode);
         }
 
         if (props.UpARestartsAtPalaces)

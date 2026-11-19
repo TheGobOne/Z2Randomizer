@@ -6,6 +6,15 @@
 - Added a "Generate Requirements Graph" option (Hints tab) that writes a `_requirements.json` file listing the minimal routes and requirements to reach every item location and palace boss from the North Palace.
 - Added a "Prioritize palace items" option (Archipelago tab) that adds the palace item locations to the priority locations of the Archipelago YAML.
 
+## Version 5.2.5 - October 24, 2026
+
+- Fixed where items in maze island palace could not require key/fairy logically.
+- Fixed an issue that could result in malformed valley of death paths.
+- Fixed an issue refilling mirrored palace rooms.
+- Fixed an issue where flute warp crashed the game on non-mario mode when encounter rate was None.
+- Fixed an issue with hidden palace location tracking.
+- Reduced enemies in "Hot Wings With Rope" room.
+
 ## Version 5.2.4 - September 26, 2026
 
 - Fixed an issue where elevators in mirrored rooms were sometimes incorrect.

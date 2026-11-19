@@ -97,6 +97,7 @@ public class CustomTexts
 
     public const int WEST_TEXT_COUNT = 52;
     private const int MAX_TEXT_LENGTH = 3134;
+    private const int MAX_TEXT_ATTEMPTS = 1000;
     private const int numberOfTextEntries = 98;
 
     // On the off chance we do something that eats up space in PRG3, we can limit
@@ -613,6 +614,7 @@ public class CustomTexts
 
         // Make a new RNG for community text so that it doesn't affect the final hash.
         var nonhashRNG = new Random(hashRNG.Next());
+        int textAttempts = 0;
         do
         {
             if (props.ReplaceFireWithDash)
@@ -670,7 +672,12 @@ public class CustomTexts
                 }
             }
 
-            if (props.HelpfulHints != HelpfulHintOption.NONE || props.MarioMode)
+            if (props.ArchipelagoMode && props.HelpfulHints != HelpfulHintOption.NONE)
+            {
+                List<int> placedIndexes = GenerateArchipelagoHintSlots(texts, hashRNG, props);
+                GenerateKnowNothings(texts, placedIndexes, nonhashRNG, props.HelpfulHints, props.BagusWoods, props.UseCommunityText, props.MarioMode);
+            }
+            else if (props.HelpfulHints != HelpfulHintOption.NONE || props.MarioMode)
             {
                 List<int> placedIndexes = GenerateHelpfulHints(texts, locations, hashRNG, props);
                 GenerateKnowNothings(texts, placedIndexes, nonhashRNG, props.HelpfulHints, props.BagusWoods, props.UseCommunityText, props.MarioMode);
@@ -691,7 +698,13 @@ public class CustomTexts
             {
                 GenerateTownNameHints(texts, locations, props);
             }
-        } while (TextLength(texts) > MAX_TEXT_LENGTH);
+        } while (TextLength(texts) > MAX_TEXT_LENGTH && ++textAttempts < MAX_TEXT_ATTEMPTS);
+
+        if (TextLength(texts) > MAX_TEXT_LENGTH)
+        {
+            // Archipelago placeholders are a fixed size, so a seed that is already near the limit can never shrink under it
+            throw new ImpossibleException($"The dialog did not fit in {MAX_TEXT_LENGTH} bytes after {MAX_TEXT_ATTEMPTS} attempts");
+        }
 
         return texts;
     }
@@ -756,16 +769,104 @@ public class CustomTexts
         bool linkedFire = props.LinkedFireSpell != null;
         foreach (Location location in locations.Where(i => i.Town?.GetWizard() != null))
         {
-            // In Archipelago mode, a wizard in the pool holds the AP item, which a sign can't name
-            if (props.ArchipelagoMode && ArchipelagoItems.IsInPool(location.Town!.GetWizard()!, location.Town, props))
-            {
-                continue;
-            }
             if(location?.Town?.Type != null && TOWN_SIGN_INDEXES.TryGetValue((TownType)location?.Town?.Type!, out int index))
             {
+                // In Archipelago mode, a wizard in the pool holds an AP item, which isn't known until the multiworld
+                // is generated. The sign gets a placeholder that the Archipelago client rewrites in game.
+                if (props.ArchipelagoMode && ArchipelagoItems.IsInPool(location.Town!.GetWizard()!, location.Town, props))
+                {
+                    texts[index] = ArchipelagoSignPlaceholder((TownType)location.Town.Type!);
+                    continue;
+                }
                 texts[index] = GenerateTownSignHint((Collectable)location.Town.GetWizard()!.Collectable!, linkedFire);
             }
         }
+    }
+
+    /// <summary>
+    /// Bytes reserved for an Archipelago helpful hint: the longest place ("carock$disappears$with the$", 27 characters)
+    /// plus an item name of two 10 character lines (21), the end byte, and one byte holding 0x80 + the hint number.
+    /// </summary>
+    public const int ARCHIPELAGO_HINT_SIZE = 52;
+
+    /// <summary>
+    /// In Archipelago mode the items aren't known when the ROM is made, so helpful hints are placeholders the
+    /// Archipelago client fills in. This picks the NPCs that give hints, the same way GenerateHelpfulHints does (one in
+    /// each of five towns, always one in Old Kasuto), and records them in props.ArchipelagoHintSlots.
+    /// </summary>
+    private static List<int> GenerateArchipelagoHintSlots(List<Text> hints, Random r, RandomizerProperties props)
+    {
+        List<int> placedIndex = [];
+        props.ArchipelagoHintSlots = [];
+        // the usual hint count plus the one a seed with spells in the shuffle gets for a critical spell
+        int hintsCount = HELPFUL_HINTS_COUNT + 1;
+        const int oldKasuto = 7;
+        List<int> towns = Enumerable.Range(0, hintIndexes.Length).Where(t => t != oldKasuto).ToList();
+        towns.FisherYatesShuffle(r);
+        towns = [oldKasuto, .. towns.Take(hintsCount - 1)];
+
+        for (int slot = 0; slot < towns.Count; slot++)
+        {
+            int index = hintIndexes[towns[slot]][r.Next(hintIndexes[towns[slot]].Length)];
+            int[] indexes = index switch
+            {
+                errorTextIndex1 => [errorTextIndex1, errorTextIndex2],
+                talkingBotIndexTalking => [talkingBotIndexSleeping, talkingBotIndexTalking],
+                talkingAcheIndexTalking => [talkingAcheIndexSleeping, talkingAcheIndexTalking],
+                _ => [index],
+            };
+            Text placeholder = ArchipelagoHintPlaceholder(slot);
+            foreach (int i in indexes)
+            {
+                hints[i] = placeholder;
+                placedIndex.Add(i);
+            }
+            props.ArchipelagoHintSlots.Add(indexes);
+        }
+        return placedIndex;
+    }
+
+    /// <summary>
+    /// A helpful hint reading "AP HINT", padded with end bytes to ARCHIPELAGO_HINT_SIZE. The last byte is 0x80 + the
+    /// hint number, which keeps each hint unique when the ROM is assembled. The Archipelago client
+    /// (worlds/z2r/Client.py) relies on this layout.
+    /// </summary>
+    public static Text ArchipelagoHintPlaceholder(int slot)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_HINT_SIZE).ToArray();
+        Util.ToGameText("AP HINT", true).CopyTo(bytes, 0);
+        bytes[^1] = (byte)(0x80 + slot);
+        return new Text(bytes);
+    }
+
+    /// <summary>
+    /// The start of a helpful hint about an item at this location, such as "go west to$find the$", which the
+    /// Archipelago client finishes with the item's name.
+    /// </summary>
+    public static string ArchipelagoHintPlace(Location location, RandomizerProperties props)
+    {
+        return Text.HelpfulHintPlace(location, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
+    }
+
+    /// <summary>
+    /// Bytes reserved for a town sign the Archipelago client rewrites: the longest sign it can write
+    /// ("MAGIC$CONTAINER$TOWN", 20 characters) plus its end byte, plus one byte holding the town type.
+    /// </summary>
+    public const int ARCHIPELAGO_SIGN_SIZE = 22;
+
+    /// <summary>
+    /// A town sign reading "AP ITEM TOWN", padded with end bytes to ARCHIPELAGO_SIGN_SIZE so the client has room to
+    /// write the item's name in place. The last byte is the town type, which keeps each town's sign unique (identical
+    /// texts are merged when the ROM is assembled, and each sign must have its own bytes) and lets the client check it
+    /// found the right sign. The Archipelago client (worlds/z2r/Client.py) relies on this layout.
+    /// </summary>
+    public static Text ArchipelagoSignPlaceholder(TownType town)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_SIGN_SIZE).ToArray();
+        byte[] text = Util.ToGameText("AP$ITEM$town", true);
+        text.CopyTo(bytes, 0);
+        bytes[^1] = (byte)town;
+        return new Text(bytes);
     }
     private static Text GenerateTownSignHint(Collectable spell, bool linkedFire)
     {

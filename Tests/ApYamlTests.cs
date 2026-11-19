@@ -78,6 +78,8 @@ public class ApYamlTests
               include_quest_items_in_shuffle: true
               starting_items: {Candle: 1, Life Spell: 1, Fairy Spell: 1, Downstab: 1}
               priority_locations: []
+              hint_slots: []
+              hint_places: {}
               locations:
                 WEST_CAVE_TROPHY: {address: 1552, mask: 8, collected: 0}
                 WEST_GRASS: {address: 1555, mask: 32, collected: 0}

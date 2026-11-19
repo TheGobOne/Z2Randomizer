@@ -87,6 +87,12 @@ public class Text : IEquatable<Text>
 
     public static Text GenerateHelpfulHint(Location location, Collectable collectable, bool useTownSpecificHints, bool baguIsTown)
     {
+        return new Text(HelpfulHintPlace(location, useTownSpecificHints, baguIsTown) + "%%", collectable);
+    }
+
+    /// <summary>The start of a helpful hint for an item at this location, such as "go west to$find the$".</summary>
+    public static string HelpfulHintPlace(Location location, bool useTownSpecificHints, bool baguIsTown)
+    {
         string? hint = null;
         if (location.Palace?.Number == 1)
         {
@@ -140,8 +146,8 @@ public class Text : IEquatable<Text>
             }
         }
 
-        hint ??= "ERROR$GENERATING$HINT";
-        return new Text(hint, collectable);
+        // every place above ends with "%%", where the item goes
+        return hint.Replace("%%", "");
     }
 
     public string GetDebuggerDisplay()
