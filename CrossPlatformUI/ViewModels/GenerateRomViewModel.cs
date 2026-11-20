@@ -82,9 +82,12 @@ Seed: {config.Seed}
         SaveYamlToDownloads = ReactiveCommand.CreateFromTask(async () =>
             await WriteYamlTo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"),
                               "Downloads", createFolder: true));
-        // Archipelago's default install folder on Windows; never created, since a missing one means another install
+        // Archipelago's default install folder (~/.local/share on Linux, ProgramData on Windows);
+        // never created, since a missing one means another install
         SaveYamlToPlayers = ReactiveCommand.CreateFromTask(async () =>
-            await WriteYamlTo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            await WriteYamlTo(Path.Combine(Environment.GetFolderPath(OperatingSystem.IsLinux()
+                                               ? Environment.SpecialFolder.LocalApplicationData
+                                               : Environment.SpecialFolder.CommonApplicationData),
                                            "Archipelago", "Players"),
                               "Archipelago's Players folder", createFolder: false, moveOlderAside: true));
 
