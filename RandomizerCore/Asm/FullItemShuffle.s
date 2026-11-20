@@ -594,4 +594,4 @@ ItemPaletteTable:
     .byte $01 ; Thunder Spell
     .byte $01 ; Dash Spell
     .byte $01 ; Tanooki
-    .byte $03 ; Archipelago item
+    .byte $01 ; Archipelago item (palette 1; 2 and 3 are enemy palettes)
