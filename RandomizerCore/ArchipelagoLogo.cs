@@ -20,6 +20,16 @@ public static class ArchipelagoLogo
     public static readonly byte[] Logo = Convert.FromHexString("0002007dfdffc6380307037dfcfec60054b4ab27570707032848535727070703");
 
     /// <summary>
+    /// The right half of the AP logo (32 bytes, top then bottom). It goes at CHR 0x1A060, the tile $c7 slot that
+    /// Hyrule writes from item_sprites.chr. That slot is in the fixed $1C00 window, so it is the same in every room.
+    /// The game draws an item's second sprite flipped horizontally, so these tiles are stored mirrored.
+    /// </summary>
+    public static readonly byte[] LogoRight = Convert.FromHexString("00020201000100380307037d7dffc6387cdcfb77670707037cfcfb7777070703");
+
+    /// <summary>CHR offset (from the start of the CHR data) of the tile $c7 slot.</summary>
+    private const int RightHalfChrOffset = 0x1A060;
+
+    /// <summary>
     /// Replaces every Link Doll in the ROM with the logo. Returns the number of places changed (0 if the ROM has no
     /// Link Doll, for example one that already has the logo).
     /// </summary>
@@ -32,6 +42,11 @@ public static class ArchipelagoLogo
         {
             Logo.CopyTo(rom, at);
             count++;
+        }
+        // the right half goes in once, in the fixed item-sprite slot (bank 13), not in every bank
+        if (count > 0)
+        {
+            LogoRight.CopyTo(rom, start + RightHalfChrOffset);
         }
         return count;
     }

@@ -560,7 +560,7 @@ ItemTileTable:
     .byte $f7, $f9 ; Thunder Spell
     .byte $cf, $92 ; Dash Spell
     .byte $00, $f5 ; Tanooki (never placed in a sideview)
-    .byte $a8, $f5 ; Archipelago item (reuses the Link Doll tile so no CHR bank needs to change)
+    .byte $a8, $c7 ; Archipelago item: left half of the logo ($a8, Link Doll tile) and right half ($c7, bank $68 slot, see ArchipelagoLogo)
 
 ; In vanilla this table is limited only to the 6 items in $10-$16
 ; We can keep the first $10 items using the original, and just expand the rest
