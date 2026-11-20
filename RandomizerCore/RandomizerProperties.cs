@@ -154,6 +154,10 @@ public class RandomizerProperties
     /// <summary>Archipelago mode with Spell Item Hints: the text index of the hint for each spell item that Archipelago
     /// places, which the client fills in with where the item landed in the multiworld.</summary>
     public System.Collections.Generic.Dictionary<Collectable, int> ArchipelagoSpellHintSlots { get; set; } = [];
+    /// <summary>Archipelago mode: the text index of the item-get dialog of each town location (wizard, trainer, table,
+    /// fountain, Bagu), by node id, with the number its placeholder ends with. The client fills them in with the item the
+    /// location holds.</summary>
+    public System.Collections.Generic.Dictionary<string, (int Index, int Number)> ArchipelagoItemTextSlots { get; set; } = [];
 
     //Enemies
     public EnemyLifeOption ShuffleEnemyHP { get; set; }

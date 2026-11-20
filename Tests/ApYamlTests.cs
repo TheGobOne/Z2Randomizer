@@ -81,6 +81,7 @@ public class ApYamlTests
               hint_slots: []
               hint_places: {}
               spell_hint_slots: {}
+              item_text_slots: {}
               locations:
                 WEST_CAVE_TROPHY: {address: 1552, mask: 8, collected: 0}
                 WEST_GRASS: {address: 1555, mask: 32, collected: 0}
@@ -220,6 +221,16 @@ public class ApYamlTests
             .And.Contain("  fixed_items:\n    PALACE1:crystal: Crystal 1\n")
             .And.Contain("    PALACE1:crystal: [[HAMMER]]\n")
             .And.NotContain("events");
+    }
+
+    [TestMethod]
+    public void Build_ListsTheItemTextSlotsByNodeId()
+    {
+        var props = Props();
+        props.ArchipelagoItemTextSlots = new() { ["WEST_TOWN_SARIA_NORTH:table"] = (21, 1), ["WEST_TOWN_RAURU:wizard"] = (15, 0) };
+
+        Build(props, Manifest(), Routes()).Should().Contain(
+            "  item_text_slots: {WEST_TOWN_RAURU:wizard: [15, 0], WEST_TOWN_SARIA_NORTH:table: [21, 1]}\n");
     }
 
     [TestMethod]

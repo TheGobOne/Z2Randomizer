@@ -514,6 +514,10 @@ public class Hyrule
                     File.WriteAllText("rooms.log", sb.ToString());
                 }
             }*/
+            if (props.ArchipelagoMode)
+            {
+                ArchipelagoLogo.Apply(ROMData.rawdata);
+            }
             return new RandomizerResult(true, ROMData.rawdata, rom.debugfile, string.Join(Environment.NewLine, rom.messages.Select(x => x.ToString())));
         }
         catch(Exception e)
