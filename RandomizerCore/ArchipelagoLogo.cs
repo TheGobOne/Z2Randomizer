@@ -4,9 +4,9 @@ namespace Z2Randomizer.RandomizerCore;
 
 /// <summary>
 /// Archipelago mode: Z2R draws every AP item with the Link Doll's tiles, so this replaces the Link Doll graphic in the
-/// CHR with the left half of the Archipelago logo (the logo's pixels, shrunk to 16x16, as 8x16 sprite tiles). Only the
-/// Link Doll's tiles change, and every Link Doll in the game is an AP item in this mode, so nothing else looks
-/// different. The tiles are the output of tools/z2r_ap_logo.py in fceux-archipelago for the Archipelago icon.
+/// CHR with the left half of the Archipelago logo (the logo's pixels, shrunk to 16x16, as 8x16 sprite tiles), and
+/// writes the right half once into the item's second sprite slot. Only the Link Doll's tiles and that blank slot
+/// change, and every Link Doll in the game is an AP item in this mode, so nothing else looks different.
 /// </summary>
 public static class ArchipelagoLogo
 {
@@ -43,10 +43,12 @@ public static class ArchipelagoLogo
             Logo.CopyTo(rom, at);
             count++;
         }
-        // the right half goes in once, in the fixed item-sprite slot (bank 13), not in every bank
-        if (count > 0)
+        // the right half goes in once, in the fixed item-sprite slot (bank 13), not in every bank.
+        // A ROM whose CHR is too small to have that slot keeps the left half only.
+        int right = start + RightHalfChrOffset;
+        if (count > 0 && right + LogoRight.Length <= rom.Length)
         {
-            LogoRight.CopyTo(rom, start + RightHalfChrOffset);
+            LogoRight.CopyTo(rom, right);
         }
         return count;
     }
