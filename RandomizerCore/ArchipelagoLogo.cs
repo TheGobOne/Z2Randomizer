@@ -10,12 +10,6 @@ namespace Z2Randomizer.RandomizerCore;
 /// </summary>
 public static class ArchipelagoLogo
 {
-    /// <summary>
-    /// The Link Doll's top tile (16 bytes) as the CHR has it. The top tile is the same in every Link Doll found so far;
-    /// the bottom tile varies between ROM builds, so the search uses the top tile and the logo replaces both.
-    /// </summary>
-    public static readonly byte[] LinkDoll = Convert.FromHexString("001c3e7f2255227f00001c225d2a1c22");
-
     /// <summary>The left half of the AP logo, as the same 32 bytes (top tile, then bottom tile).</summary>
     public static readonly byte[] Logo = Convert.FromHexString("0002007dfdffc6380307037dfcfec60054b4ab27570707032848535727070703");
 
@@ -26,36 +20,43 @@ public static class ArchipelagoLogo
     /// </summary>
     public static readonly byte[] LogoRight = Convert.FromHexString("00020201000100380307037d7dffc6387cdcfb77670707037cfcfb7777070703");
 
+    /// <summary>
+    /// CHR offset of the Link Doll's tiles in the first sprite bank (CHR.ONEUP is the same tile in PPU space).
+    /// The doll repeats in each of the first DollBanks 8 KB banks, at the same offset (Hyrule writes Mario mode's
+    /// 1-up the same way). The offsets are fixed: a custom character sprite changes the doll's pixels, not where it is.
+    /// </summary>
+    public const int DollChrOffset = 0x0A80;
+    public const int DollBanks = 13;
+    private const int ChrBankSize = 0x2000;
+
     /// <summary>CHR offset (from the start of the CHR data) of the tile $c7 slot.</summary>
     private const int RightHalfChrOffset = 0x1A060;
 
     /// <summary>
-    /// Replaces every Link Doll in the ROM with the logo. Returns the number of places changed (0 if the ROM has no
-    /// Link Doll, for example one that already has the logo).
+    /// Writes the logo over the Link Doll in every sprite bank the ROM has, and the right half into the $c7 slot.
+    /// Returns the number of banks written. A ROM whose CHR is too small for a bank or for the $c7 slot gets what fits.
     /// </summary>
     public static int Apply(byte[] rom)
     {
-        int count = 0;
         // the iNES header's byte 4 is the PRG bank count; the CHR starts after the PRG
         int start = rom.Length > 16 ? 16 + rom[4] * 0x4000 : 16;
-        for (int at = IndexOf(rom, LinkDoll, start); at >= 0; at = IndexOf(rom, LinkDoll, at + LinkDoll.Length))
+        int count = 0;
+        for (int bank = 0; bank < DollBanks; bank++)
         {
+            int at = start + bank * ChrBankSize + DollChrOffset;
+            if (at + Logo.Length > rom.Length)
+            {
+                break;
+            }
             Logo.CopyTo(rom, at);
             count++;
         }
-        // the right half goes in once, in the fixed item-sprite slot (bank 13), not in every bank.
-        // A ROM whose CHR is too small to have that slot keeps the left half only.
+        // the right half goes in once, in the fixed item-sprite slot (bank 13), not in every bank
         int right = start + RightHalfChrOffset;
         if (count > 0 && right + LogoRight.Length <= rom.Length)
         {
             LogoRight.CopyTo(rom, right);
         }
         return count;
-    }
-
-    private static int IndexOf(byte[] data, byte[] pattern, int from)
-    {
-        int i = data.AsSpan(from).IndexOf(pattern);
-        return i < 0 ? -1 : from + i;
     }
 }
