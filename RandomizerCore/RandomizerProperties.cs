@@ -153,11 +153,23 @@ public class RandomizerProperties
     public System.Collections.Generic.List<int[]> ArchipelagoHintSlots { get; set; } = [];
     /// <summary>Archipelago mode with Spell Item Hints: the text index of the hint for each spell item that Archipelago
     /// places, which the client fills in with where the item landed in the multiworld.</summary>
+    [JsonIgnore]
     public System.Collections.Generic.Dictionary<Collectable, int> ArchipelagoSpellHintSlots { get; set; } = [];
+    /// <summary>ArchipelagoSpellHintSlots for the spoiler, left out when there are none.</summary>
+    [JsonPropertyName("ArchipelagoSpellHintSlots"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public System.Collections.Generic.Dictionary<Collectable, int>? ArchipelagoSpellHintSlotsSpoiler =>
+        ArchipelagoSpellHintSlots.Count == 0 ? null : ArchipelagoSpellHintSlots;
     /// <summary>Archipelago mode: the text index of the item-get dialog of each town location (wizard, trainer, table,
     /// fountain, Bagu), by node id, with the number its placeholder ends with. The client fills them in with the item the
     /// location holds.</summary>
+    [JsonIgnore]
     public System.Collections.Generic.Dictionary<string, (int Index, int Number)> ArchipelagoItemTextSlots { get; set; } = [];
+    /// <summary>ArchipelagoItemTextSlots for the spoiler as [index, number] pairs (JSON writes a tuple as {}), left out
+    /// when there are none.</summary>
+    [JsonPropertyName("ArchipelagoItemTextSlots"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public System.Collections.Generic.Dictionary<string, int[]>? ArchipelagoItemTextSlotsSpoiler =>
+        ArchipelagoItemTextSlots.Count == 0 ? null
+            : ArchipelagoItemTextSlots.ToDictionary(s => s.Key, s => new[] { s.Value.Index, s.Value.Number });
 
     //Enemies
     public EnemyLifeOption ShuffleEnemyHP { get; set; }

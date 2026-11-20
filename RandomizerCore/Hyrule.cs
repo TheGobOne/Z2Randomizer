@@ -3169,7 +3169,8 @@ HelmetHeadGoomaFix:
     jsr HelmetHeadGoomaFix
 
 .org $9b27
-; Also fix a key glitch
+; Also fix a key glitch. This is the vanilla crystal flag store (sta $078c,y); StatTracking.s sets the flag
+; by the post-shuffle palace number instead. ArchipelagoSeedTests checks these NOPs.
     nop
     nop
     nop

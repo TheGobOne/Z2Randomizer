@@ -1332,10 +1332,6 @@ public class CustomTexts
         List<Text> vanillaTexts = new(texts);
         List<Text> usedTexts = [];
 
-        IEnumerable<Town> townsfolkCollectableTowns = itemLocs.Where(i => i.Town != null).Select(i => i.Town)!;
-        IEnumerable<TownMap> townsfolkCollectableMaps = itemLocs.Where(i => i.Town != null)
-            .SelectMany(i => i.Town!.TownMaps.Where(m => m.CollectableTextType != null));
-
         foreach (Location townLocation in itemLocs.Where(i => i.Town != null))
         {
             Town town = townLocation.Town!;

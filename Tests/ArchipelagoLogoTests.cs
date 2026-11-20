@@ -6,14 +6,16 @@ namespace Z2Randomizer.Tests;
 [TestClass]
 public class ArchipelagoLogoTests
 {
-    private const int ChrStart = 16 + 8 * 0x4000;
+    // the ROM layout the randomizer builds: 16 PRG banks of 16 KB, then 16 CHR banks of 8 KB
+    private const int PrgBanks = 16;
+    private const int ChrStart = 16 + PrgBanks * 0x4000;
     private const int DollChrOffset = 0x0A80;
     private const int DollBanks = 13;
 
     private static byte[] Rom(int chrSize = 0x20000, byte doll = 0x5a)
     {
         var rom = new byte[ChrStart + chrSize];
-        rom[4] = 8; // PRG banks
+        rom[4] = PrgBanks;
         for (int bank = 0; bank < DollBanks; bank++)
         {
             int at = ChrStart + bank * 0x2000 + DollChrOffset;
