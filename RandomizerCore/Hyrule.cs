@@ -3138,6 +3138,9 @@ CustomFileSelectData:
         a.Set("_DO_SPELL_SHUFFLE_WIZARD_UPDATE", 1); // always on now, so starting spells can be replaced by minor items
         a.Set("SHUFFLED_SPELL_LIST", props.ShuffleSpellLocations ? 1 : 0);
         a.Assign("ENABLE_Z2_MARIO", props.MarioMode ? 1 : 0);
+        a.Set("ARCHIPELAGO_MODE", props.ArchipelagoMode ? 1 : 0);
+        a.Set("AP_ITEM_LEFT_TILE", ArchipelagoLogo.LeftTile);
+        a.Set("AP_ITEM_RIGHT_TILE", ArchipelagoLogo.RightTile);
         a.Code(Util.ReadResource("Z2Randomizer.RandomizerCore.Asm.FullItemShuffle.s"), "full_item_shuffle.s");
     }
     

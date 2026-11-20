@@ -7,14 +7,16 @@ namespace Z2Randomizer.Tests;
 public class ArchipelagoLogoTests
 {
     private const int ChrStart = 16 + 8 * 0x4000;
+    private const int DollChrOffset = 0x0A80;
+    private const int DollBanks = 13;
 
-    private static byte[] Rom(int chrSize = 0x20000, byte doll = 0x00)
+    private static byte[] Rom(int chrSize = 0x20000, byte doll = 0x5a)
     {
         var rom = new byte[ChrStart + chrSize];
         rom[4] = 8; // PRG banks
-        for (int bank = 0; bank < ArchipelagoLogo.DollBanks; bank++)
+        for (int bank = 0; bank < DollBanks; bank++)
         {
-            int at = ChrStart + bank * 0x2000 + ArchipelagoLogo.DollChrOffset;
+            int at = ChrStart + bank * 0x2000 + DollChrOffset;
             if (at + 32 <= rom.Length)
             {
                 rom.AsSpan(at, 32).Fill(doll);
@@ -23,32 +25,26 @@ public class ArchipelagoLogoTests
         return rom;
     }
 
-    private static bool LogoAt(byte[] rom, int bank) =>
-        rom.AsSpan(ChrStart + bank * 0x2000 + ArchipelagoLogo.DollChrOffset, 32).SequenceEqual(ArchipelagoLogo.Logo);
-
     [TestMethod]
-    public void Apply_WritesTheLogoInEverySpriteBank()
+    public void Apply_WritesTheLeftHalfInTiles_FC_FD_OfTheFixedSpritePage()
     {
         var rom = Rom();
-        ArchipelagoLogo.Apply(rom).Should().Be(ArchipelagoLogo.DollBanks);
-        for (int bank = 0; bank < ArchipelagoLogo.DollBanks; bank++)
-        {
-            LogoAt(rom, bank).Should().BeTrue();
-        }
+        ArchipelagoLogo.Apply(rom).Should().BeTrue();
+        ArchipelagoLogo.LeftHalfChrOffset.Should().Be(0x1A000 + (0xFC - 0xC0) * 16);
+        rom.AsSpan(ChrStart + 0x1A3C0, 32).SequenceEqual(ArchipelagoLogo.Logo).Should().BeTrue();
     }
 
     [TestMethod]
-    public void Apply_ReplacesACustomCharactersDoll()
+    public void Apply_WritesTheRightHalfInTiles_C6_C7()
     {
-        // a custom character sprite draws its own doll; the logo still goes in the same place
-        var rom = Rom(doll: 0x5a);
-        ArchipelagoLogo.Apply(rom).Should().Be(ArchipelagoLogo.DollBanks);
-        LogoAt(rom, 0).Should().BeTrue();
-        LogoAt(rom, ArchipelagoLogo.DollBanks - 1).Should().BeTrue();
+        var rom = Rom();
+        ArchipelagoLogo.Apply(rom);
+        ArchipelagoLogo.RightHalfChrOffset.Should().Be(0x1A000 + (0xC6 - 0xC0) * 16);
+        rom.AsSpan(ChrStart + 0x1A060, 32).SequenceEqual(ArchipelagoLogo.LogoRight).Should().BeTrue();
     }
 
     [TestMethod]
-    public void Apply_ChangesOnlyTheDollsAndTheRightHalfSlot()
+    public void Apply_LeavesTheDollAndEveryOtherByteAlone()
     {
         var rom = Rom();
         var before = (byte[])rom.Clone();
@@ -57,27 +53,30 @@ public class ArchipelagoLogoTests
         {
             if (rom[i] == before[i]) { continue; }
             int chr = i - ChrStart;
-            bool inDoll = chr % 0x2000 >= ArchipelagoLogo.DollChrOffset && chr % 0x2000 < ArchipelagoLogo.DollChrOffset + 32
-                          && chr / 0x2000 < ArchipelagoLogo.DollBanks;
+            bool inLeft = chr >= 0x1A3C0 && chr < 0x1A3E0;
             bool inRight = chr >= 0x1A060 && chr < 0x1A080;
-            (inDoll || inRight).Should().BeTrue($"byte {i:X} changed");
+            (inLeft || inRight).Should().BeTrue($"byte {i:X} changed");
+        }
+        for (int bank = 0; bank < DollBanks; bank++)
+        {
+            rom.AsSpan(ChrStart + bank * 0x2000 + DollChrOffset, 32).ToArray().Should().OnlyContain(b => b == 0x5a);
         }
     }
 
     [TestMethod]
-    public void Apply_WritesTheRightHalfInTheItemSpriteSlot()
+    public void TilePair_IsFdAndC7()
     {
-        var rom = Rom();
-        ArchipelagoLogo.Apply(rom);
-        rom.AsSpan(ChrStart + 0x1A060, 32).SequenceEqual(ArchipelagoLogo.LogoRight).Should().BeTrue();
+        ArchipelagoLogo.LeftTile.Should().Be(0xfd);
+        ArchipelagoLogo.RightTile.Should().Be(0xc7);
     }
 
     [TestMethod]
-    public void Apply_SmallChrKeepsTheLeftHalfOnly()
+    public void Apply_SmallChrWritesNothing()
     {
         var rom = Rom(chrSize: 0x2000);
-        ArchipelagoLogo.Apply(rom).Should().Be(1);
-        LogoAt(rom, 0).Should().BeTrue();
+        var before = (byte[])rom.Clone();
+        ArchipelagoLogo.Apply(rom).Should().BeFalse();
+        rom.Should().Equal(before);
     }
 
     [TestMethod]
