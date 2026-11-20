@@ -5,6 +5,10 @@
 - Added an "Archipelago Mode" option that puts an AP item in every item location for the Archipelago multiworld, and leaves spells, sword techniques and town quest items to the randomizer when they are not in the shuffle, and writes a YAML file for the Archipelago world with the RAM flag and access rules of each AP item location. The slot name (at most 16 characters) and seed are stored in the ROM at CPU address $FCB0.
 - Added a "Generate Requirements Graph" option (Hints tab) that writes a `_requirements.json` file listing the minimal routes and requirements to reach every item location and palace boss from the North Palace.
 - Added a "Prioritize palace items" option (Archipelago tab) that adds the palace item locations to the priority locations of the Archipelago YAML.
+- Added a "Save YAML" button to the generation dialog in Archipelago Mode. It lets you pick where to save the Archipelago YAML, for example straight into Archipelago's Players folder. The YAML is still saved next to the ROM as before.
+- Added "YAML to Downloads" and "YAML to Players" buttons next to it (desktop only). They save the YAML in one click to your Downloads folder or to Archipelago's default Players folder (`C:\ProgramData\Archipelago\Players` on Windows).
+- Added an "Export YAML" button on the Archipelago tab. It builds the seed without saving a ROM and saves just the Archipelago YAML to a place you pick. The YAML holds the seed's locations and rules, so the seed has to be built first.
+- Spell Item Hints work in Archipelago Mode: the hint for a spell item that Archipelago places (trophy, medicine, kid, mirror, water, downstab, upstab) is left for the Archipelago client to fill in with where the item landed. The YAML lists these hints as `spell_hint_slots`.
 
 ## Version 5.2.5 - October 24, 2026
 

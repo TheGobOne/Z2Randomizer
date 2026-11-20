@@ -151,6 +151,9 @@ public class RandomizerProperties
     /// </summary>
     [NotMapped, JsonIgnore]
     public System.Collections.Generic.List<int[]> ArchipelagoHintSlots { get; set; } = [];
+    /// <summary>Archipelago mode with Spell Item Hints: the text index of the hint for each spell item that Archipelago
+    /// places, which the client fills in with where the item landed in the multiworld.</summary>
+    public System.Collections.Generic.Dictionary<Collectable, int> ArchipelagoSpellHintSlots { get; set; } = [];
 
     //Enemies
     public EnemyLifeOption ShuffleEnemyHP { get; set; }

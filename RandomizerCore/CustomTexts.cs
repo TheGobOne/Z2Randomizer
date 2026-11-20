@@ -623,6 +623,7 @@ public class CustomTexts
             }
 
             GenerateTownsfolkTexts(texts, locations, nonhashRNG, props.UseCommunityText, props.IncludeQuestItemsInShuffle);
+            props.ArchipelagoSpellHintSlots = [];
 
             if (props.SpellItemHints)
             {
@@ -652,7 +653,9 @@ public class CustomTexts
                 }
                 else
                 {
-                    hint = Text.GenerateHelpfulHint(downstabLoc!, Collectable.DOWNSTAB, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
+                    hint = downstabLoc == null && props.ArchipelagoMode
+                        ? ArchipelagoSpellHint(props, Collectable.DOWNSTAB, downstabClosedDoorTextIndex)
+                        : Text.GenerateHelpfulHint(downstabLoc!, Collectable.DOWNSTAB, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                 }
                 texts[downstabClosedDoorTextIndex] = hint;
                 if (props.StartWithUpstab)
@@ -662,13 +665,22 @@ public class CustomTexts
                 }
                 else
                 {
-                    hint = Text.GenerateHelpfulHint(upstabLoc!, Collectable.UPSTAB, props.IncludeSpellsInShuffle, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
+                    hint = upstabLoc == null && props.ArchipelagoMode
+                        ? ArchipelagoSpellHint(props, Collectable.UPSTAB, upstabClosedDoorTextIndex)
+                        : Text.GenerateHelpfulHint(upstabLoc!, Collectable.UPSTAB, props.IncludeSpellsInShuffle, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                 }
                 texts[upstabClosedDoorTextIndex] = hint;
                 if (props.SwapUpAndDownStab)
                 {
                     (texts[upstabClosedDoorTextIndex], texts[downstabClosedDoorTextIndex]) 
                         = (texts[downstabClosedDoorTextIndex], texts[upstabClosedDoorTextIndex]);
+                    // the placeholders moved with the texts
+                    foreach (var stab in props.ArchipelagoSpellHintSlots.Keys.ToList())
+                    {
+                        int at = props.ArchipelagoSpellHintSlots[stab];
+                        if (at == upstabClosedDoorTextIndex) props.ArchipelagoSpellHintSlots[stab] = downstabClosedDoorTextIndex;
+                        else if (at == downstabClosedDoorTextIndex) props.ArchipelagoSpellHintSlots[stab] = upstabClosedDoorTextIndex;
+                    }
                 }
             }
 
@@ -836,6 +848,37 @@ public class CustomTexts
         byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_HINT_SIZE).ToArray();
         Util.ToGameText("AP HINT", true).CopyTo(bytes, 0);
         bytes[^1] = (byte)(0x80 + slot);
+        return new Text(bytes);
+    }
+
+    /// <summary>
+    /// Bytes reserved for a spell item hint the Archipelago client fills in: four 11 character lines ("TROPHY AT",
+    /// the player, two lines of location), three line breaks, the end byte, and one byte holding 0xA0 + the item's
+    /// number (the client relies on this layout).
+    /// </summary>
+    public const int ARCHIPELAGO_SPELL_HINT_SIZE = 49;
+
+    /// <summary>The order of the spell hint items, which gives each placeholder its last byte.</summary>
+    public static readonly Collectable[] ARCHIPELAGO_SPELL_HINT_ITEMS =
+        [Collectable.TROPHY, Collectable.MEDICINE, Collectable.CHILD, Collectable.MIRROR, Collectable.WATER,
+         Collectable.DOWNSTAB, Collectable.UPSTAB];
+
+    /// <summary>
+    /// A spell item hint for an item Archipelago places: "AP HINT" padded with end bytes to
+    /// ARCHIPELAGO_SPELL_HINT_SIZE, with 0xA0 + the item's number last. Records its text index in
+    /// props.ArchipelagoSpellHintSlots.
+    /// </summary>
+    private static Text ArchipelagoSpellHint(RandomizerProperties props, Collectable item, int textIndex)
+    {
+        props.ArchipelagoSpellHintSlots[item] = textIndex;
+        return ArchipelagoSpellHintPlaceholder(item);
+    }
+
+    public static Text ArchipelagoSpellHintPlaceholder(Collectable item)
+    {
+        byte[] bytes = Enumerable.Repeat((byte)0xFF, ARCHIPELAGO_SPELL_HINT_SIZE).ToArray();
+        Util.ToGameText("AP HINT", true).CopyTo(bytes, 0);
+        bytes[^1] = (byte)(0xA0 + Array.IndexOf(ARCHIPELAGO_SPELL_HINT_ITEMS, item));
         return new Text(bytes);
     }
 
@@ -1212,12 +1255,20 @@ public class CustomTexts
                 Text trophyHint = Text.GenerateHelpfulHint(itemLocation, Collectable.TROPHY, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                 hints[trophySpellHintIndex] = trophyHint;
             }
+            else if (props.ArchipelagoMode)
+            {
+                hints[trophySpellHintIndex] = ArchipelagoSpellHint(props, Collectable.TROPHY, trophySpellHintIndex);
+            }
 
             itemLocation = locations.FirstOrDefault(i => i.GetAllCollectables().Contains(Collectable.MEDICINE))!;
             if (itemLocation != null)
             {
                 Text medHint = Text.GenerateHelpfulHint(itemLocation, Collectable.MEDICINE, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                 hints[medicineSpellHintIndex] = medHint;
+            }
+            else if (props.ArchipelagoMode)
+            {
+                hints[medicineSpellHintIndex] = ArchipelagoSpellHint(props, Collectable.MEDICINE, medicineSpellHintIndex);
             }   
 
             itemLocation = locations.FirstOrDefault(i => i.GetAllCollectables().Contains(Collectable.CHILD))!;
@@ -1225,6 +1276,10 @@ public class CustomTexts
             {
                 Text kidHint = Text.GenerateHelpfulHint(itemLocation, Collectable.CHILD, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                 hints[childSpellHintIndex] = kidHint;
+            }
+            else if (props.ArchipelagoMode)
+            {
+                hints[childSpellHintIndex] = ArchipelagoSpellHint(props, Collectable.CHILD, childSpellHintIndex);
             }
 
             if (props.IncludeQuestItemsInShuffle)
@@ -1235,12 +1290,20 @@ public class CustomTexts
                     Text mirrorHint = Text.GenerateHelpfulHint(itemLocation, Collectable.MIRROR, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                     hints[mirrorSpellHintIndex] = mirrorHint;
                 }
+                else if (props.ArchipelagoMode)
+                {
+                    hints[mirrorSpellHintIndex] = ArchipelagoSpellHint(props, Collectable.MIRROR, mirrorSpellHintIndex);
+                }
 
                 itemLocation = locations.FirstOrDefault(i => i.GetAllCollectables().Contains(Collectable.WATER))!;
                 if (itemLocation != null)
                 {
                     Text waterHint = Text.GenerateHelpfulHint(itemLocation, Collectable.WATER, props.HelpfulHints == HelpfulHintOption.TOWNS_SEPARATE, HELPFUL_HINTS_TREAT_BAGU_AS_TOWN);
                     hints[waterSpellHintIndex] = waterHint;
+                }
+                else if (props.ArchipelagoMode)
+                {
+                    hints[waterSpellHintIndex] = ArchipelagoSpellHint(props, Collectable.WATER, waterSpellHintIndex);
                 }
             }
         }

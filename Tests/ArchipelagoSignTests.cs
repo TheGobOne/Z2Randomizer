@@ -40,6 +40,26 @@ public class ArchipelagoSignTests
     }
 
     [TestMethod]
+    public void SpellHintPlaceholder_HasRoomForFourFullLines_AndEndsWithTheItemsNumber()
+    {
+        byte[] bytes = CustomTexts.ArchipelagoSpellHintPlaceholder(Collectable.MIRROR).EncodedText;
+
+        bytes.Should().HaveCount(CustomTexts.ARCHIPELAGO_SPELL_HINT_SIZE);
+        bytes[^1].Should().Be(0xA3);
+        Util.ToGameText("DOWNSTAB AT$ABCDEFGHIJK$ABCDEFGHIJK$ABCDEFGHIJK", true).Length
+            .Should().BeLessThanOrEqualTo(bytes.Length - 1);
+    }
+
+    [TestMethod]
+    public void SpellHintPlaceholders_AreUniqueAndDifferFromHelpfulHints()
+    {
+        var all = CustomTexts.ARCHIPELAGO_SPELL_HINT_ITEMS.Select(i => CustomTexts.ArchipelagoSpellHintPlaceholder(i).EncodedText[^1])
+            .Concat(Enumerable.Range(0, 8).Select(n => CustomTexts.ArchipelagoHintPlaceholder(n).EncodedText[^1])).ToList();
+
+        all.Should().OnlyHaveUniqueItems();
+    }
+
+    [TestMethod]
     public void Placeholder_EndsWithTheTownType_SoEachTownIsUnique()
     {
         var signs = new[] { TownType.RAURU, TownType.RUTO, TownType.SARIA, TownType.MIDO, TownType.NABOORU,
