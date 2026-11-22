@@ -1,7 +1,7 @@
 .include "z2r.inc"
 
-; Archipelago: a white "?" over the head of each town NPC whose text is a helpful hint, until the player has
-; read that hint. Assembled only in Archipelago mode with helpful hints on (Hyrule.AddHintMarks).
+; Archipelago: a white "?" over the head of each town NPC whose text is a helpful hint. It stays after the player
+; reads the hint. Assembled only in Archipelago mode with helpful hints on (Hyrule.AddHintMarks).
 ;
 ; A helpful hint is a text slot of ARCHIPELAGO_HINT_SIZE bytes that ends in an $FF end byte and $80 + the hint
 ; number (CustomTexts.ArchipelagoHintPlaceholder). The Archipelago client rewrites the text but keeps that shape.
@@ -149,13 +149,13 @@ DrawHintMark:
     ora $0c
     tay
     lda ($0e),y
-    jsr IsUnreadHintText
+    jsr IsHintText
     bcs @Draw
 @Done:
     rts
 @Draw:
     ; The NPC is already drawn: put the mark above the top-left of its first 4 sprites
-    ldx EnemyIndex              ; IsUnreadHintText used X; the draw routines keep the slot here
+    ldx EnemyIndex              ; IsHintText used X; the draw routines keep the slot here
     lda ObjectOamOffset,x
     tax
     lda #$ff
@@ -302,9 +302,9 @@ DialogState:
     sec
     rts
 
-; A = text number in the current world's table. C = 1 if it is a helpful hint the player has not read.
+; A = text number in the current world's table. C = 1 if it is a helpful hint, read or not.
 ; Uses $0e/$0f.
-IsUnreadHintText:
+IsHintText:
     asl a
     tay
     lda WorldNumber
@@ -321,23 +321,7 @@ IsUnreadHintText:
     sta $0f
     pla
     sta $0e
-    jsr HintNumber
-    bcc @No
-    cmp #MAX_HINTS
-    bcs @Yes                    ; no bit to remember it by, so it always shows
-    tax
-    ldy CurrentGameSlot
-    cpy #3
-    bcs @Yes                    ; no file slot to look it up in
-    lda HintBits,x
-    and HintsReadMask,y         ; one mask per save file
-    bne @No
-@Yes:
-    sec
-    rts
-@No:
-    clc
-    rts
+    jmp HintNumber              ; C and A as HintNumber returns them; the read mask is not checked
 
 ; ($0e) = a text. C = 1 and A = the hint number if the text is a helpful hint. Uses Y.
 HintNumber:
