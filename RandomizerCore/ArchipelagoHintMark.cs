@@ -44,5 +44,5 @@ public static class ArchipelagoHintMark
     }
 
     public static bool Enabled(RandomizerProperties props) =>
-        props.ArchipelagoMode && props.HelpfulHints != HelpfulHintOption.NONE;
+        props.ArchipelagoMode && props.HintMarkers && props.HelpfulHints != HelpfulHintOption.NONE;
 }

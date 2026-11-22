@@ -144,6 +144,8 @@ public class RandomizerProperties
     [NotMapped]
     public bool PrioritizePalaceItems { get; set; }
     [NotMapped]
+    public bool HintMarkers { get; set; }
+    [NotMapped]
     public string ArchipelagoSlotName { get; set; } = "";
     /// <summary>
     /// The text indexes of each Archipelago helpful hint, set while the texts are generated. A hint can use more than one

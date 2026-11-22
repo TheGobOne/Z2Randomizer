@@ -41,6 +41,9 @@ public class Program
     [Option(ShortName = "sl", LongName = "slot-name", Description = "[Optional] The Archipelago slot name to store in the ROM. Required with --archipelago, at most 16 characters")]
     public string? SlotName { get; }
 
+    [Option(ShortName = "hm", LongName = "hint-markers", Description = "[Optional] With --archipelago, draw a \"!\" over town NPCs with an unread helpful hint")]
+    public bool HintMarkers { get; }
+
     private RandomizerConfiguration? configuration;
     private byte[]? vanillaRomData;
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
@@ -82,6 +85,7 @@ public class Program
         {
             configuration.ArchipelagoMode = true;
             configuration.ArchipelagoSlotName = SlotName ?? configuration.ArchipelagoSlotName;
+            configuration.HintMarkers = HintMarkers;
         }
 
         if (string.IsNullOrEmpty(Rom))

@@ -44,6 +44,19 @@ public class ArchipelagoHintMarkTests
     }
 
     [TestMethod]
+    public void Enabled_OnlyWhenHintMarkersIsOn_AndHelpfulHintsAreOn()
+    {
+        var props = new RandomizerProperties { ArchipelagoMode = true, HelpfulHints = HelpfulHintOption.TOWNS_SEPARATE };
+        ArchipelagoHintMark.Enabled(props).Should().BeFalse("Hint Markers is off by default");
+
+        props.HintMarkers = true;
+        ArchipelagoHintMark.Enabled(props).Should().BeTrue();
+
+        props.HelpfulHints = HelpfulHintOption.NONE;
+        ArchipelagoHintMark.Enabled(props).Should().BeFalse();
+    }
+
+    [TestMethod]
     public void Apply_WritesTheGlyphOnlyInTilesE4_E5_OfTheFixedSpritePage()
     {
         var rom = Rom();
