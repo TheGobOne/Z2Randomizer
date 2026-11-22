@@ -18,13 +18,21 @@ public class ArchipelagoHintMarkTests
     }
 
     [TestMethod]
-    public void Glyph_IsBlankTopTile_ThenQuestionMarkBottomTile()
+    public void Glyph_IsWhiteQuestionMark_WithColor1Outline()
     {
         ArchipelagoHintMark.Glyph.Length.Should().Be(32);
-        ArchipelagoHintMark.Glyph.AsSpan(0, 16).ToArray().Should().AllBeEquivalentTo((byte)0);
-        ArchipelagoHintMark.Glyph.AsSpan(16, 16).ToArray().Should().Equal(
-            0x3C, 0x66, 0x06, 0x0C, 0x18, 0x00, 0x18, 0x00,
-            0x3C, 0x66, 0x06, 0x0C, 0x18, 0x00, 0x18, 0x00);
+        byte[] white = [0x3C, 0x66, 0x06, 0x0C, 0x18, 0x00, 0x18, 0x00];
+        // plane 1 of the bottom tile is the white "?" alone; the top tile's plane 1 is empty
+        ArchipelagoHintMark.Glyph.AsSpan(24, 8).ToArray().Should().Equal(white);
+        ArchipelagoHintMark.Glyph.AsSpan(8, 8).ToArray().Should().AllBeEquivalentTo((byte)0);
+        // plane 0 covers the "?" plus its outline, and the outline touches every white pixel on 4 sides
+        byte[] plane0 = [.. ArchipelagoHintMark.Glyph.AsSpan(0, 8).ToArray(), .. ArchipelagoHintMark.Glyph.AsSpan(16, 8).ToArray()];
+        byte[] w16 = [0, 0, 0, 0, 0, 0, 0, 0, .. white, 0];
+        for (int r = 0; r < 16; r++)
+        {
+            int ring = w16[r] | (w16[r] << 1 & 0xFF) | (w16[r] >> 1) | w16[r + 1] | (r > 0 ? w16[r - 1] : 0);
+            plane0[r].Should().Be((byte)ring, $"row {r}");
+        }
     }
 
     [TestMethod]

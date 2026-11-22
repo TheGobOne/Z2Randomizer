@@ -15,10 +15,12 @@ public static class ArchipelagoHintMark
     public const byte Tile = 0xe5;
 
     /// <summary>
-    /// A blank top tile ($e4), then the "?" in color 3 (both planes) as the bottom tile ($e5). With sprite palette 1 that
-    /// is white in towns. No town sprite palette has yellow; color 1 of palette 1 is red.
+    /// The "?" in color 3 (both planes) in the bottom tile ($e5), with a one-pixel outline in color 1 (plane 0 only).
+    /// The outline's top row is the last row of the top tile ($e4). With sprite palette 1 in towns, color 3 is white
+    /// and color 1 is red.
     /// </summary>
-    public static readonly byte[] Glyph = Convert.FromHexString("00000000000000000000000000000000" + "3C66060C180018003C66060C18001800");
+    public static readonly byte[] Glyph = Convert.FromHexString(
+        "000000000000003C0000000000000000" + "7EFF6F1E3C183C183C66060C18001800");
 
     /// <summary>CHR offset of tile $e4 in the fixed item page, bank $68 (0x1A000 + 0x240).</summary>
     public const int GlyphChrOffset = 0x1A240;
