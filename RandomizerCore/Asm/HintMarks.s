@@ -11,11 +11,11 @@
 ; in the 5th, after the object's routine has run (it hides the sprites it doesn't use). The NPC text tables and the texts are in bank 3, which is mapped while a town runs.
 
 HINT_SIZE = 52
-HINT_MARK_TILE = $e5            ; 8x16 sprite from the fixed $1C00 page: tile $e4 (the "!") over blank $e5 (ArchipelagoHintMark.cs)
+HINT_MARK_TILE = $e5            ; 8x16 sprite from the fixed $1C00 page: blank tile $e4 over the "!" in $e5 (ArchipelagoHintMark.cs)
 HINT_MARK_PALETTE = 1           ; sprite palette: the glyph is in color 3, white in towns
 HINT_MARK_OAM = $10             ; the 5th sprite of the object's OAM block
 HINT_MARK_DX = 4                ; the "!" is in the middle of the 8 pixel tile, so this centers it over a 16 pixel NPC
-HINT_MARK_DY = 10               ; the "!" fills the top 7 rows of the sprite, so this leaves a 3 pixel gap above the NPC
+HINT_MARK_DY = 18               ; the "!" is in the bottom 8 rows of the sprite, so it sits 3 pixels above the NPC and the blank top tile stays clear of the NPC
 MAX_HINTS = 8                   ; bits in HintsReadMask
 
 FIRST_NPC_TYPE = $0a
@@ -38,6 +38,7 @@ ObjectOamOffset = $91
 ScreenY = $00                   ; set by bank7_Display for the object being drawn
 ScreenX = $01
 TextPointer = $0569
+TalkCount = $05a5               ; per object slot, read by the $0a/$0b dialog handler
 
 .segment "PRG7"
 
@@ -112,12 +113,17 @@ DrawHintMark:
     cmp #RANDOM_TEXT_LAST - FIRST_NPC_TYPE + 1
     bcc @Done
 @Known:
+    lda EnemyType,x
+    jsr DialogState
+    bcs @Done                   ; this NPC's text does not come from the town tables
+    sta $0d                     ; dialog state the game will pick
+    ldx EnemyIndex
+    lda EnemyType,x
+    sec
+    sbc #FIRST_NPC_TYPE
     asl a
     asl a
     sta $0c                     ; row * 4: each row has a text for 4 towns
-    lda #0
-    sta $0d                     ; dialog state
-@StateLoop:
     lda $0d
     beq @RowOk
     lda $0c
@@ -141,10 +147,6 @@ DrawHintMark:
     lda ($0e),y
     jsr IsUnreadHintText
     bcs @Draw
-    inc $0d
-    lda $0d
-    cmp #2
-    bcc @StateLoop
 @Done:
     rts
 @Draw:
@@ -201,6 +203,101 @@ DrawHintMark:
 NpcTextTables:
     .word NpcTextWestState0, NpcTextWestState1, NpcTextEastState0, NpcTextEastState1
 
+; A = NPC type, X = object slot. Picks the dialog state the way the game will when the player talks: the handler
+; table at bank 3 $B44E, run from $B47F. Only the flag reads are copied, not the flag writes.
+; C = 1 if the NPC's text does not come from the town text tables (wizards and others that jump to $8D40, $8D53 or
+; $8FA4). Else C = 0 and A = the dialog state, 0 or 1. Uses Y, $0e, $0f. Keeps X.
+DialogState:
+    ldy TownNumber              ; the handlers compare $056b as it is
+    cmp #$0c
+    bcs @Not0ab
+    ; $0a/$0b ($b5b9): state 1 from the 4th talk on
+    lda TalkCount,x
+    cmp #4
+    lda #0
+    rol a
+    clc
+    rts
+@Not0ab:
+    beq @State0                 ; $0c ($b5c7)
+    cmp #$0d
+    bne @Not0d
+    ; $0d ($b4a3): town 0 state 0, town 2 state 1 once $079a bit 3 is set, towns 1 and 3 not from the tables
+    cpy #0
+    beq @State0
+    cpy #2
+    bne @Special
+    lda $079a
+    and #$08
+    bne @State1
+    beq @State0
+@Not0d:
+    cmp #$0e
+    bne @Not0e
+    ; $0e ($b4ee): town 1 state 1 once $0796 bit 1 is set, town 2 state 1 once $078a is set, else state 0
+    cpy #1
+    bne @Not0eTown1
+    lda $0796
+    and #$02
+    bne @State1
+    beq @State0
+@Not0eTown1:
+    cpy #2
+    bne @State0
+    lda $078a
+    bne @State1
+    beq @State0
+@Not0e:
+    cmp #$0f
+    beq @Special                ; $0f ($b518) is not from the tables
+    cmp #$13
+    bcc @State0                 ; $10-$12 ($b54e)
+    cmp #$17
+    bcs @Not13
+    ; $13-$16 ($b560): town 0 state 1, else state 1 once ($0797,town & $b42e[(type - $13) * 8 + town]) is set
+    cpy #0
+    beq @State1
+    sec
+    sbc #$13
+    asl a
+    asl a
+    asl a
+    sta $0e
+    tya
+    clc
+    adc $0e
+    stx $0f
+    tax
+    lda $0797,y
+    and $b42e,x                 ; bank 3
+    ldx $0f
+    cmp #0
+    bne @State1
+    beq @State0
+@Not13:
+    cmp #$19
+    bcs @Not17
+    ; $17/$18 ($b57d): state 1 unless $074c is 2
+    lda $074c
+    cmp #2
+    bne @State1
+    beq @State0
+@Not17:
+    cmp #$21
+    beq @Special                ; $21 ($b5ae) is not from the tables
+    ; $19-$20 and $22: state 0
+@State0:
+    lda #0
+    clc
+    rts
+@State1:
+    lda #1
+    clc
+    rts
+@Special:
+    sec
+    rts
+
 ; A = text number in the current world's table. C = 1 if it is a helpful hint the player has not read.
 ; Uses $0e/$0f.
 IsUnreadHintText:
@@ -225,8 +322,11 @@ IsUnreadHintText:
     cmp #MAX_HINTS
     bcs @Yes                    ; no bit to remember it by, so it always shows
     tax
+    ldy CurrentGameSlot
+    cpy #3
+    bcs @Yes                    ; no file slot to look it up in
     lda HintBits,x
-    and HintsReadMask
+    and HintsReadMask,y         ; one mask per save file
     bne @No
 @Yes:
     sec
@@ -286,9 +386,12 @@ MarkHintRead:
     cmp #MAX_HINTS
     bcs @Exit
     tax
+    ldy CurrentGameSlot
+    cpy #3
+    bcs @Exit
     lda HintBits,x
-    ora HintsReadMask
-    sta HintsReadMask
+    ora HintsReadMask,y         ; one mask per save file
+    sta HintsReadMask,y
 @Exit:
     pla
     sta $0f

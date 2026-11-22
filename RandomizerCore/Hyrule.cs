@@ -3620,6 +3620,8 @@ CustomMovingNpcDialog:
             a.Assign("ENABLE_Z2_MARIO", 1);
         if (props.FluteWarpMode == FluteWarpMode.CLEARED_PALACES)
             a.Assign("FLUTE_WARP_CLEARED_PALACES", 1);
+        if (ArchipelagoHintMark.Enabled(props))
+            a.Assign("HINT_MARKS", 1);
         a.Code(Util.ReadResource("Z2Randomizer.RandomizerCore.Asm.StatTracking.s"), "stat_tracking.s");
     }
 

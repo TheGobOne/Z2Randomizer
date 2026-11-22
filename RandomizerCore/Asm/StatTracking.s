@@ -359,6 +359,14 @@ CheckIfNewSaveFile:
             sta StatTimer-1,y
             dey
             bne @loop
+.ifdef HINT_MARKS
+        ; Archipelago: forget the hints read in whatever game this file slot held before (HintMarks.s)
+        ldy CurrentGameSlot
+        cpy #3
+        bcs @NoHintMask
+        sta HintsReadMask,y
+    @NoHintMask:
+.endif
         sta StatTrackingSaveFileClear
 @skip:
 .ifdef ENABLE_Z2_MARIO

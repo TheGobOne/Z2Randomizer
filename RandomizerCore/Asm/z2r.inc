@@ -241,9 +241,13 @@ SideViewBuffer = $7800
 
 ; Duplicate the timestamp memory here that we'll copy after saving
 RESV Checkpoint, CHECKPOINT_LEN
-; Archipelago: one bit per helpful hint the player has read (HintMarks.s)
-RESV HintsReadMask, 1
 STAT_TRACKING_SIZE = RES_OFFSET
+
+; Archipelago: one byte per save file (index CurrentGameSlot), one bit per helpful hint the player has read
+; (HintMarks.s). It sits after STAT_TRACKING_SIZE so the stat clear on a new file leaves the other files alone;
+; CheckIfNewSaveFile clears only the loaded file's byte. Only builds with hint marks (HINT_MARKS) touch it, and
+; nothing else is reserved after it, so other ROMs keep the same SRAM layout as before.
+RESV HintsReadMask, 3
 
 ClearSRAMStart = RES_OFFSET
 
