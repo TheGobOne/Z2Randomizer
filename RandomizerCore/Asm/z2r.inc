@@ -245,8 +245,9 @@ STAT_TRACKING_SIZE = RES_OFFSET
 
 ; Archipelago: one byte per save file (index CurrentGameSlot), one bit per helpful hint the player has read
 ; (HintMarks.s). It sits after STAT_TRACKING_SIZE so the stat clear on a new file leaves the other files alone;
-; CheckIfNewSaveFile clears only the loaded file's byte. Only builds with hint marks (HINT_MARKS) touch it, and
-; nothing else is reserved after it, so other ROMs keep the same SRAM layout as before.
+; ClearHintsReadForNamedFile (StatTracking.s) clears only the byte of the file being named. Only builds with hint
+; marks (HINT_MARKS) read or write it, but RESV is unconditional: these 3 bytes are reserved in every build, so
+; everything reserved after this point (ClearSRAMStart and the rest) sits 3 bytes higher than before this was added.
 RESV HintsReadMask, 3
 
 ClearSRAMStart = RES_OFFSET

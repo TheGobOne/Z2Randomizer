@@ -115,8 +115,17 @@ public static class CollectableExtensions
             _ => throw new Exception("Invalid item type determining itemgets")
         };
     }
-    public static string EnglishText(this Collectable collectable)
+    /// <summary>
+    /// The collectable's name for in-game text. With shortSpellNames (Archipelago seeds only), spells drop the
+    /// "$SPELL" suffix so the client has room on the sign and dialog lines. Other seeds keep the original text.
+    /// </summary>
+    public static string EnglishText(this Collectable collectable, bool shortSpellNames = false)
     {
+        if (shortSpellNames && collectable.IsSpell())
+        {
+            string name = collectable.EnglishText();
+            return name.EndsWith("$SPELL") ? name[..^"$SPELL".Length] : name;
+        }
         return collectable switch
         {
             Collectable.CANDLE => "CANDLE",
@@ -146,15 +155,15 @@ public static class CollectableExtensions
             Collectable.MIRROR => "MIRROR",
             Collectable.BAGUS_NOTE => "BAGUS$LETTER",
             Collectable.WATER => "WATER",
-            Collectable.SHIELD_SPELL => "SHIELD",
-            Collectable.JUMP_SPELL => "JUMP",
-            Collectable.LIFE_SPELL => "LIFE",
-            Collectable.FAIRY_SPELL => "FAIRY",
-            Collectable.FIRE_SPELL => "FIRE",
-            Collectable.DASH_SPELL => "DASH",
-            Collectable.REFLECT_SPELL => "REFLECT",
-            Collectable.SPELL_SPELL => "SPELL",
-            Collectable.THUNDER_SPELL => "THUNDER",
+            Collectable.SHIELD_SPELL => "SHIELD$SPELL",
+            Collectable.JUMP_SPELL => "JUMP$SPELL",
+            Collectable.LIFE_SPELL => "LIFE$SPELL",
+            Collectable.FAIRY_SPELL => "FAIRY$SPELL",
+            Collectable.FIRE_SPELL => "FIRE$SPELL",
+            Collectable.DASH_SPELL => "DASH$SPELL",
+            Collectable.REFLECT_SPELL => "REFLECT$SPELL",
+            Collectable.SPELL_SPELL => "SPELL$SPELL",
+            Collectable.THUNDER_SPELL => "THUNDER$SPELL",
             Collectable.TANOOKI => "TANOOKI$SUIT",
             Collectable.AP_ITEM => "AP$ITEM",
             _ => "MISSING"

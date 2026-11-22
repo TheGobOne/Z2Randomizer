@@ -359,14 +359,6 @@ CheckIfNewSaveFile:
             sta StatTimer-1,y
             dey
             bne @loop
-.ifdef HINT_MARKS
-        ; Archipelago: forget the hints read in whatever game this file slot held before (HintMarks.s)
-        ldy CurrentGameSlot
-        cpy #3
-        bcs @NoHintMask
-        sta HintsReadMask,y
-    @NoHintMask:
-.endif
         sta StatTrackingSaveFileClear
 @skip:
 .ifdef ENABLE_Z2_MARIO
@@ -393,6 +385,32 @@ SetNewSaveFile:
     sta $0725 ; sets the next screen to draw
     sta StatTrackingSaveFileClear ; nonzero = new file, 0 = old file
     rts
+
+.ifdef HINT_MARKS
+; Archipelago: the Register screen writes each letter of a file's name at $B8BF (lda $bd75,x / sta ($00),y), with
+; $19 = the file being named (0-2). A file being named is a new game, so forget the hints read in whatever game that
+; slot held. This clears only that file's mask: the one flag above covers every file, so the next file loaded is not
+; necessarily the one just registered, and its marks must survive.
+.org $B8BF
+    jsr ClearHintsReadForNamedFile
+
+.reloc
+ClearHintsReadForNamedFile:
+    lda $bd75,x         ; the instruction the hook replaced: the letter to store
+    pha
+    txa
+    pha
+    ldx $19
+    cpx #3
+    bcs @Done
+        lda #0
+        sta HintsReadMask,x
+@Done:
+    pla
+    tax
+    pla
+    rts
+.endif
 
 ; Patch a few save/load locations in the game to also update the timestamp checkpoints
 .org $B931

@@ -563,7 +563,7 @@ ItemTileTable:
 .if ARCHIPELAGO_MODE
     .byte AP_ITEM_LEFT_TILE, AP_ITEM_RIGHT_TILE ; Archipelago item: the logo's two halves, both in bank $68 (see ArchipelagoLogo)
 .else
-    .byte $a8, $f5 ; Archipelago item (unused outside Archipelago mode)
+    .byte $a8, $c7 ; Archipelago item (unused outside Archipelago mode): same bytes as before Archipelago mode drew the logo
 .endif
 
 ; In vanilla this table is limited only to the 6 items in $10-$16
@@ -594,4 +594,8 @@ ItemPaletteTable:
     .byte $01 ; Thunder Spell
     .byte $01 ; Dash Spell
     .byte $01 ; Tanooki
+.if ARCHIPELAGO_MODE
     .byte $01 ; Archipelago item (palette 1; 2 and 3 are enemy palettes)
+.else
+    .byte $03 ; Archipelago item (unused outside Archipelago mode)
+.endif

@@ -516,7 +516,11 @@ public class Hyrule
             }*/
             if (props.ArchipelagoMode)
             {
-                ArchipelagoLogo.Apply(ROMData.rawdata);
+                if (!ArchipelagoLogo.Apply(ROMData.rawdata))
+                {
+                    // the AP item would be drawn from blank tiles; the seed still generates
+                    logger.Warn("Archipelago logo not written: the ROM's CHR data is too small to hold it, so AP items will have blank icons.");
+                }
             }
             if (ArchipelagoHintMark.Enabled(props))
             {

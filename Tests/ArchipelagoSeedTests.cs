@@ -17,11 +17,12 @@ public class ArchipelagoSeedTests
     private const string Seed = "12345";
     private const string SlotName = "Tester";
 
-    // SHA-256 of the ROMs these tests build at commit 83e847f7. A change that alters them changes every seed made
+    // SHA-256 of the ROMs these tests build. The non-AP hash is the ROM from origin/ap cbf42700 (AP work must not
+    // change non-AP seeds); the AP hash is this branch with hint marks and short spell names. A change that alters them changes every seed made
     // with these settings: for an Archipelago seed that breaks a multiworld already generated from the old ROM. If
     // the change is meant to alter the ROM, say so in the commit and update the hash.
-    private const string NonApRomSha256 = "C51C4FBAD4D02EE1FBC8CE242FA84963ABCFF67B7FC07ADD3132B585F2CDE042";
-    private const string ApRomSha256 = "8583C8F6E3B1EFFBB1FD73AEB21E6B87317F032C022403A5478C58EC40D4FC0C";
+    private const string NonApRomSha256 = "CCDC037FDA36A900FD753850E2D6C9EC93C54DE2432CFAE1668C1E48CC249BC1";
+    private const string ApRomSha256 = "130FB4D0E8A4F7AE623452B0B75831CFB58F2CDCF9AA5021790433891D0403CC";
 
     // PRG bank 4 $9B27, where vanilla sets the crystal placed flag with "sta $078c,y"
     private const int CrystalFlagStore = 16 + 4 * 0x4000 + (0x9B27 - 0x8000);
@@ -71,13 +72,13 @@ public class ArchipelagoSeedTests
     private static string Sha256(byte[] data) => Convert.ToHexString(SHA256.HashData(data));
 
     [TestMethod]
-    public void NonApSeed_IsByteIdenticalToTheRomFrom83e847f7()
+    public void NonApSeed_IsByteIdenticalToThePinnedRom()
     {
         Sha256(Built(archipelago: false).Rom).Should().Be(NonApRomSha256);
     }
 
     [TestMethod]
-    public void ApSeed_IsByteIdenticalToTheRomFrom83e847f7()
+    public void ApSeed_IsByteIdenticalToThePinnedRom()
     {
         Sha256(Built(archipelago: true).Rom).Should().Be(ApRomSha256);
     }
@@ -149,7 +150,7 @@ public class ArchipelagoSeedTests
     // The randomizer's HelmetHeadGoomaFix (Hyrule.cs) removes the vanilla crystal flag store, and
     // SaveTimestampForPalace (StatTracking.s) sets the flag by the post-shuffle palace number instead. If the store
     // came back, it would write the flag at the vanilla index too.
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void Seed_RemovesTheVanillaCrystalFlagStore(bool archipelago)

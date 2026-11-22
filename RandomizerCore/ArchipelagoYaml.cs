@@ -236,18 +236,15 @@ public static partial class ApYamlBuilder
 
     /// <summary>
     /// True when an existing YAML would be a second Z2R slot next to the new one: Archipelago makes a slot for every
-    /// YAML in its Players folder. That is a Z2R YAML made by this app (its file name ends in "_ap.yaml") or a Z2R
-    /// YAML for the same slot name under any file name. YAMLs for other games are never replaced.
+    /// YAML in its Players folder. That is a Z2R YAML for the same slot name, under any file name (this app names its
+    /// YAMLs Z2_seed_flags_ap.yaml, so an older one for the player has another file name). A Z2R YAML for another slot
+    /// name belongs to another player and stays, and so do YAMLs for other games.
     /// </summary>
     public static bool ReplacedBy(string existingFileName, string existingText, string newText)
     {
         if (TopLevelValue(existingText, "game") != GameName)
         {
             return false;
-        }
-        if (existingFileName.EndsWith("_ap.yaml", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
         }
         var name = TopLevelValue(existingText, "name");
         return name != null && name == TopLevelValue(newText, "name");

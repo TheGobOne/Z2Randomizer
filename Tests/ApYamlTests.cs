@@ -301,8 +301,9 @@ public class ApYamlTests
 
     private const string NewYaml = "name: \"Gob-Z2R\"\ngame: Z2R\nrequires:\n";
 
-    [DataTestMethod]
-    [DataRow("Z2_1_FLAGS_ap.yaml", "name: Someone\ngame: Z2R\n", true)]      // made by this app, any slot name
+    [TestMethod]
+    [DataRow("Z2_1_FLAGS_ap.yaml", "name: Gob-Z2R\ngame: Z2R\n", true)]     // made by this app for this slot
+    [DataRow("Z2_1_FLAGS_ap.yaml", "name: Someone\ngame: Z2R\n", false)]    // made by this app, but another player's slot
     [DataRow("Gob-Z2R.yaml", "name: \"Gob-Z2R\"\ngame: Z2R\n", true)]      // saved under another file name
     [DataRow("Gob-Z2R.yml", "name: Gob-Z2R # me\r\ngame: 'Z2R'\r\n", true)]
     [DataRow("Friend.yaml", "name: Friend\ngame: Z2R\n", false)]           // another player's Z2R slot

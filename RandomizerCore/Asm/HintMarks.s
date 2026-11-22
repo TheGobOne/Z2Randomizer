@@ -47,6 +47,16 @@ TalkCount = $05a5               ; per object slot, read by the $0a/$0b dialog ha
 
 .reloc
 HintMarkDisplay:
+    ; Outside towns there is nothing to draw: do what vanilla does and tail-jump to the object's routine. Only Y is
+    ; touched (A passes through), and the routine's RTS returns to the caller.
+    ldy WorldNumber
+    cpy #1
+    beq @Town
+    cpy #2
+    beq @Town
+    ldy ObjectOamOffset,x
+    jmp ($000e)
+@Town:
     ; Draw the object first: its routine hides the sprites it doesn't use, which would hide the mark
     ldy ObjectOamOffset,x
     jsr CallObjectDisplay
@@ -56,12 +66,6 @@ HintMarkDisplay:
     pha
     tya
     pha
-    lda WorldNumber
-    cmp #1
-    beq @Town
-    cmp #2
-    bne @Exit
-@Town:
     ldx EnemyIndex
     cpx #6
     bcs @Exit
@@ -401,7 +405,8 @@ MarkHintRead:
     tay
     pla
     tax
-    ; what the hook replaced (vanilla $b614: lda #$2a / sta $0566)
-    lda #$2a
+    ; what the hook replaced (vanilla $b614: lda #$2a / sta $0566). ROM.cs "Make text go fast" patches the operand
+    ; at $b615 to $00 before this runs, so replay $00: the vanilla $2a would bring back the slow text delay.
+    lda #$00
     sta $0566
     rts
