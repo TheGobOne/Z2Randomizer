@@ -361,18 +361,18 @@ HintNumber:
 HintBits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
 
-; The "Register your name" screen drew its two cursors with tile $ff, which now holds the "?". Draw them from tile
-; $93 instead: a 12 row block in CHR bank 6, which that screen maps at $1800. Sprite palette 2 makes it white.
+; The "Register your name" screen drew its two cursors with tile $ff, which now holds the "?". Draw them from the
+; boss bar tile $c5 instead, flipped vertically. Sprite palette 2 makes it white ($82 = palette 2 + vertical flip).
 .segment "PRG5"
 
 .org $b75a                      ; name cursor: lda #$ff / sta $0205
-    .byte $93
+    .byte $c5
 .org $b75f                      ; lda #$03 / sta $0206
-    .byte $02
+    .byte $82
 .org $b86d                      ; letter grid cursor: lda #$ff / sta $0245
-    .byte $93
+    .byte $c5
 .org $b872                      ; lda #$03 / sta $0246
-    .byte $02
+    .byte $82
 
 ; When a dialog starts, remember a helpful hint as read
 .segment "PRG3"
