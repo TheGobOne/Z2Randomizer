@@ -67,17 +67,17 @@ public class ArchipelagoHintMarkTests
     }
 
     [TestMethod]
-    public void Apply_WritesTheGlyphOnlyInTilesE4_E5_OfTheFixedSpritePage()
+    public void Apply_WritesTheGlyphOnlyInTilesFE_FF_OfTheFixedSpritePage()
     {
         var rom = Rom();
         var before = (byte[])rom.Clone();
         ArchipelagoHintMark.Apply(rom);
-        rom.AsSpan(ChrStart + 0x1A240, 32).SequenceEqual(ArchipelagoHintMark.Glyph).Should().BeTrue();
+        rom.AsSpan(ChrStart + 0x1A3E0, 32).SequenceEqual(ArchipelagoHintMark.Glyph).Should().BeTrue();
         for (int i = 0; i < rom.Length; i++)
         {
             if (rom[i] == before[i]) { continue; }
             int chr = i - ChrStart;
-            (chr >= 0x1A240 && chr < 0x1A260).Should().BeTrue($"byte {i:X} changed");
+            (chr >= 0x1A3E0 && chr < 0x1A400).Should().BeTrue($"byte {i:X} changed");
         }
     }
 }
