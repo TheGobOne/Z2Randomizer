@@ -5,9 +5,9 @@ namespace Z2Randomizer.RandomizerCore;
 
 /// <summary>
 /// Archipelago mode with helpful hints: a "?" over each town NPC whose text is an unread helpful hint (Asm/HintMarks.s).
-/// The "?" is one 8x16 sprite in tiles $e4/$e5 of the fixed $1C00 sprite page (CHR bank $68, mapped in every room).
-/// item_sprites.chr puts art there, but no entry of ItemTileTable or CommonEnemyTileTable (FullItemShuffle.s) uses
-/// tile $e5, so nothing else draws it. The only blank pair, $f4/$f5, is the blank sprite weapons and NPCs use.
+/// The "?" is one 8x16 sprite in tiles $fe/$ff of the fixed $1C00 sprite page (CHR bank $68, mapped in every room).
+/// Every 8x16 pair of that page has a user. $fe/$ff was the "Register your name" cursor, which HintMarks.s moves to
+/// the boss bar tile $c5.
 /// </summary>
 public static class ArchipelagoHintMark
 {

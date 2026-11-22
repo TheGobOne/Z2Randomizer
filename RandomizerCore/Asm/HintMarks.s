@@ -361,6 +361,19 @@ HintNumber:
 HintBits:
     .byte $01, $02, $04, $08, $10, $20, $40, $80
 
+; The "Register your name" screen drew its two cursors with tile $ff, which now holds the "?". Draw them from the
+; boss bar tile $c5 instead, flipped vertically (attribute $03 -> $83).
+.segment "PRG5"
+
+.org $b75a                      ; name cursor: lda #$ff / sta $0205
+    .byte $c5
+.org $b75f                      ; lda #$03 / sta $0206
+    .byte $83
+.org $b86d                      ; letter grid cursor: lda #$ff / sta $0245
+    .byte $c5
+.org $b872                      ; lda #$03 / sta $0246
+    .byte $83
+
 ; When a dialog starts, remember a helpful hint as read
 .segment "PRG3"
 
