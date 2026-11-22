@@ -846,7 +846,7 @@ public sealed partial class RandomizerConfiguration() : INotifyPropertyChanged
     private bool prioritizePalaceItems = false;
 
     /// <summary>
-    /// Archipelago mode with helpful hints: a "!" over each town NPC whose helpful hint the player has not read.
+    /// Archipelago mode with helpful hints: a "?" over each town NPC whose helpful hint the player has not read.
     /// On by default; the marks add a little CPU work to every town frame.
     /// </summary>
     [Reactive]

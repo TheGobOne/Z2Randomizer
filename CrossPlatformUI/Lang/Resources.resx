@@ -338,7 +338,7 @@ Also writes an ap.yaml file for the Archipelago world with the slot name, seed, 
 fills them with progression items first.</value>
 	</data>
 	<data name="HintMarkersToolTip" xml:space="preserve">
-<value>Draws a white "!" over each town NPC who has a helpful hint you have not read yet. Needs Helpful Hints
+<value>Draws a white "?" over each town NPC who has a helpful hint you have not read yet. Needs Helpful Hints
 to be on. Adds a little CPU work to every town frame.</value>
 	</data>
 	<data name="ArchipelagoSlotNameToolTip" xml:space="preserve">

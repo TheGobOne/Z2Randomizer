@@ -41,7 +41,7 @@ public class Program
     [Option(ShortName = "sl", LongName = "slot-name", Description = "[Optional] The Archipelago slot name to store in the ROM. Required with --archipelago, at most 16 characters")]
     public string? SlotName { get; }
 
-    [Option(ShortName = "nhm", LongName = "no-hint-markers", Description = "[Optional] With --archipelago, turn off the \"!\" over town NPCs with an unread helpful hint (on by default)")]
+    [Option(ShortName = "nhm", LongName = "no-hint-markers", Description = "[Optional] With --archipelago, turn off the \"?\" over town NPCs with an unread helpful hint (on by default)")]
     public bool NoHintMarkers { get; }
 
     private RandomizerConfiguration? configuration;

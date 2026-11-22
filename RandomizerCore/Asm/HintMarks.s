@@ -1,6 +1,6 @@
 .include "z2r.inc"
 
-; Archipelago: a white "!" over the head of each town NPC whose text is a helpful hint, until the player has
+; Archipelago: a white "?" over the head of each town NPC whose text is a helpful hint, until the player has
 ; read that hint. Assembled only in Archipelago mode with helpful hints on (Hyrule.AddHintMarks).
 ;
 ; A helpful hint is a text slot of ARCHIPELAGO_HINT_SIZE bytes that ends in an $FF end byte and $80 + the hint
@@ -11,11 +11,11 @@
 ; in the 5th, after the object's routine has run (it hides the sprites it doesn't use). The NPC text tables and the texts are in bank 3, which is mapped while a town runs.
 
 HINT_SIZE = 52
-HINT_MARK_TILE = $e5            ; 8x16 sprite from the fixed $1C00 page: blank tile $e4 over the "!" in $e5 (ArchipelagoHintMark.cs)
+HINT_MARK_TILE = $e5            ; 8x16 sprite from the fixed $1C00 page: blank tile $e4 over the "?" in $e5 (ArchipelagoHintMark.cs)
 HINT_MARK_PALETTE = 1           ; sprite palette: the glyph is in color 3, white in towns
 HINT_MARK_OAM = $10             ; the 5th sprite of the object's OAM block
-HINT_MARK_DX = 4                ; the "!" is in the middle of the 8 pixel tile, so this centers it over a 16 pixel NPC
-HINT_MARK_DY = 18               ; the "!" is in the bottom 8 rows of the sprite, so it sits 3 pixels above the NPC and the blank top tile stays clear of the NPC
+HINT_MARK_DX = 4                ; the "?" is in the middle of the 8 pixel tile, so this centers it over a 16 pixel NPC
+HINT_MARK_DY = 18               ; the "?" is in the bottom 8 rows of the sprite, so it sits 3 pixels above the NPC and the blank top tile stays clear of the NPC
 MAX_HINTS = 8                   ; bits in HintsReadMask
 
 FIRST_NPC_TYPE = $0a

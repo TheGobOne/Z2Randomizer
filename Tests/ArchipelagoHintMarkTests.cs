@@ -18,13 +18,13 @@ public class ArchipelagoHintMarkTests
     }
 
     [TestMethod]
-    public void Glyph_IsBlankTopTile_ThenExclamationMarkBottomTile()
+    public void Glyph_IsBlankTopTile_ThenQuestionMarkBottomTile()
     {
         ArchipelagoHintMark.Glyph.Length.Should().Be(32);
         ArchipelagoHintMark.Glyph.AsSpan(0, 16).ToArray().Should().AllBeEquivalentTo((byte)0);
         ArchipelagoHintMark.Glyph.AsSpan(16, 16).ToArray().Should().Equal(
-            0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x00,
-            0x18, 0x18, 0x18, 0x18, 0x18, 0x00, 0x18, 0x00);
+            0x3C, 0x66, 0x06, 0x0C, 0x18, 0x00, 0x18, 0x00,
+            0x3C, 0x66, 0x06, 0x0C, 0x18, 0x00, 0x18, 0x00);
     }
 
     [TestMethod]
