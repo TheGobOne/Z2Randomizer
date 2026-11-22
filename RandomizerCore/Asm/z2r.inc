@@ -241,6 +241,8 @@ SideViewBuffer = $7800
 
 ; Duplicate the timestamp memory here that we'll copy after saving
 RESV Checkpoint, CHECKPOINT_LEN
+; Archipelago: one bit per helpful hint the player has read (HintMarks.s)
+RESV HintsReadMask, 1
 STAT_TRACKING_SIZE = RES_OFFSET
 
 ClearSRAMStart = RES_OFFSET

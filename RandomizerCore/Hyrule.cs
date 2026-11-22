@@ -518,6 +518,10 @@ public class Hyrule
             {
                 ArchipelagoLogo.Apply(ROMData.rawdata);
             }
+            if (ArchipelagoHintMark.Enabled(props))
+            {
+                ArchipelagoHintMark.Apply(ROMData.rawdata);
+            }
             return new RandomizerResult(true, ROMData.rawdata, rom.debugfile, string.Join(Environment.NewLine, rom.messages.Select(x => x.ToString())));
         }
         catch(Exception e)
@@ -3930,6 +3934,10 @@ FlagHudUpdate:
         if (props.ArchipelagoMode)
         {
             ArchipelagoSignature.Write(engine, props.ArchipelagoSlotName, props.Seed ?? "", SeedHash);
+            if (ArchipelagoHintMark.Enabled(props))
+            {
+                ArchipelagoHintMark.AddHooks(engine);
+            }
         }
         rom.FixMinibossGlitchyAppearance(engine);
         rom.FixBossKillPaletteGlitch(engine);
