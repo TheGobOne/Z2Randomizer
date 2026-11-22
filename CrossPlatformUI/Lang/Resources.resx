@@ -339,7 +339,7 @@ fills them with progression items first.</value>
 	</data>
 	<data name="HintMarkersToolTip" xml:space="preserve">
 <value>Draws a white "!" over each town NPC who has a helpful hint you have not read yet. Needs Helpful Hints
-to be on. Adds a little CPU work to every town frame, so it is off by default.</value>
+to be on. Adds a little CPU work to every town frame.</value>
 	</data>
 	<data name="ArchipelagoSlotNameToolTip" xml:space="preserve">
 <value>Your slot name from the Archipelago YAML. It is stored in the ROM together with the seed so the

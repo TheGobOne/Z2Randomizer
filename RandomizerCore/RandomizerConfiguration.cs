@@ -847,11 +847,11 @@ public sealed partial class RandomizerConfiguration() : INotifyPropertyChanged
 
     /// <summary>
     /// Archipelago mode with helpful hints: a "!" over each town NPC whose helpful hint the player has not read.
-    /// Off by default; the marks add CPU work to every town frame.
+    /// On by default; the marks add a little CPU work to every town frame.
     /// </summary>
     [Reactive]
     [IgnoreInFlags]
-    private bool hintMarkers = false;
+    private bool hintMarkers = true;
 
     /// <summary>
     /// The slot name from the player's Archipelago YAML, stored in the ROM. At most 16 characters.

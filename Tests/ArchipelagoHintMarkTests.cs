@@ -46,8 +46,10 @@ public class ArchipelagoHintMarkTests
     [TestMethod]
     public void Enabled_OnlyWhenHintMarkersIsOn_AndHelpfulHintsAreOn()
     {
+        new RandomizerConfiguration().HintMarkers.Should().BeTrue("Hint Markers is on by default");
+
         var props = new RandomizerProperties { ArchipelagoMode = true, HelpfulHints = HelpfulHintOption.TOWNS_SEPARATE };
-        ArchipelagoHintMark.Enabled(props).Should().BeFalse("Hint Markers is off by default");
+        ArchipelagoHintMark.Enabled(props).Should().BeFalse();
 
         props.HintMarkers = true;
         ArchipelagoHintMark.Enabled(props).Should().BeTrue();
