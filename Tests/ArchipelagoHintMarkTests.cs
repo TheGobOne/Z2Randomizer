@@ -36,10 +36,10 @@ public class ArchipelagoHintMarkTests
     }
 
     [TestMethod]
-    public void Tile_IsTheBottomTileOfTheSpritePairStartingAtE4()
+    public void Tile_IsTheBottomTileOfTheSpritePairStartingAtFE()
     {
-        ArchipelagoHintMark.Tile.Should().Be(0xe5);
-        ArchipelagoHintMark.GlyphChrOffset.Should().Be(0x1A000 + (0xE4 - 0xC0) * 16);
+        ArchipelagoHintMark.Tile.Should().Be(0xff);
+        ArchipelagoHintMark.GlyphChrOffset.Should().Be(0x1A000 + (0xFE - 0xC0) * 16);
     }
 
     [TestMethod]

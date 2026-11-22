@@ -11,19 +11,19 @@ namespace Z2Randomizer.RandomizerCore;
 /// </summary>
 public static class ArchipelagoHintMark
 {
-    /// <summary>Tile byte of the sprite. Odd, so it picks the $1000 pattern table; the top tile is $e4 and the bottom is $e5.</summary>
-    public const byte Tile = 0xe5;
+    /// <summary>Tile byte of the sprite. Odd, so it picks the $1000 pattern table; the top tile is $fe and the bottom is $ff.</summary>
+    public const byte Tile = 0xff;
 
     /// <summary>
-    /// The "?" in color 3 (both planes) in the bottom tile ($e5), with a one-pixel outline in color 1 (plane 0 only).
-    /// The outline's top row is the last row of the top tile ($e4). With sprite palette 1 in towns, color 3 is white
+    /// The "?" in color 3 (both planes) in the bottom tile ($ff), with a one-pixel outline in color 1 (plane 0 only).
+    /// The outline's top row is the last row of the top tile ($fe). With sprite palette 1 in towns, color 3 is white
     /// and color 1 is red.
     /// </summary>
     public static readonly byte[] Glyph = Convert.FromHexString(
         "000000000000003C0000000000000000" + "7EFF6F1E3C183C183C66060C18001800");
 
-    /// <summary>CHR offset of tile $e4 in the fixed item page, bank $68 (0x1A000 + 0x240).</summary>
-    public const int GlyphChrOffset = 0x1A240;
+    /// <summary>CHR offset of tile $fe in the fixed item page, bank $68 (0x1A000 + 0x3E0).</summary>
+    public const int GlyphChrOffset = 0x1A3E0;
 
     /// <summary>
     /// Writes the "?" into the fixed item page. Call after everything else that writes bank $68.

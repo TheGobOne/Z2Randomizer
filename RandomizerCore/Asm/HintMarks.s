@@ -11,7 +11,7 @@
 ; in the 5th, after the object's routine has run (it hides the sprites it doesn't use). The NPC text tables and the texts are in bank 3, which is mapped while a town runs.
 
 HINT_SIZE = 52
-HINT_MARK_TILE = $e5            ; 8x16 sprite from the fixed $1C00 page: blank tile $e4 over the "?" in $e5 (ArchipelagoHintMark.cs)
+HINT_MARK_TILE = $ff            ; 8x16 sprite from the fixed $1C00 page: tile $fe over the "?" in $ff (ArchipelagoHintMark.cs)
 HINT_MARK_PALETTE = 1           ; sprite palette: the glyph is in color 3, white in towns
 HINT_MARK_OAM = $10             ; the 5th sprite of the object's OAM block
 HINT_MARK_DX = 4                ; the "?" is in the middle of the 8 pixel tile, so this centers it over a 16 pixel NPC
